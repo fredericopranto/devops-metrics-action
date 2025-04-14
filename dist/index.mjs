@@ -13,15 +13,14 @@ import { LeadTime } from './LeadTime.js';
 dotenv.config();
 export async function run() {
     try {
-        const repo = process.env.REPO || '';
-        const owner = process.env.OWNER || '';
+        const repositoriesEnv = process.env.GITHUB_REPOSITORY || '';
         const token = process.env.GITHUB_TOKEN || '';
         const logging = process.env.LOGGING === 'false';
         const filtered = process.env.FILTERED === 'true';
-        if (!repo || !owner || !token) {
-            throw new Error('Por favor, configure as variáveis REPO, OWNER e GITHUB_TOKEN no arquivo .env');
+        if (!repositoriesEnv || !token) {
+            throw new Error('Por favor, configure as variáveis GITHUB_REPOSITORY e GITHUB_TOKEN no arquivo .env');
         }
-        const repositories = repo
+        const repositories = repositoriesEnv
             .split(/[[\]\n,]+/)
             .map(s => s.trim())
             .filter(x => x !== '');
@@ -33,8 +32,10 @@ export async function run() {
         });
         for (const repository of repositories) {
             console.log(`Processando repositório: ${repository}`);
+            // Separar owner e repo do formato "owner/repo"
+            const [owner, repo] = repository.split('/');
             // Deployment Frequency (ajustado para receber um único repositório)
-            const rel = new ReleaseAdapter(octokit, owner, repository);
+            const rel = new ReleaseAdapter(octokit, owner, repo);
             const releaseList = (await rel.GetAllReleases()) || [];
             const df = new DeployFrequency(releaseList);
             console.log(`Deployment Frequency (${repository}):`, df.rate());
