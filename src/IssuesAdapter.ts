@@ -18,23 +18,24 @@ export class IssuesAdapter implements IIssuesAdapter {
   }
 
   async GetAllIssues(since?: Date): Promise<Issue[] | undefined> {
-    // console.log(
-    //   `Fetching issues ${
-    //     since ? `since: ${since.toISOString()}` : 'for all time'
-    //   }`
-    // );
     try {
       let result: Issue[] = [];
+  
       for (const repo of this.repositories) {
-        let nextPage = await this.getIssues(repo, since, 1);
-        console.log(`Fetched ${nextPage.length} issues from page 1`);
-        result = result.concat(nextPage);
-        for (let page = 2; page < 100 && nextPage.length === 100; page++) {
-          nextPage = await this.getIssues(repo, since, page);
-          console.log(`Fetched ${nextPage.length} issues from page ${page}`);
-          result = result.concat(nextPage);
+        let page = 1;
+  
+        while (true) {
+          const issuesPage = await this.getIssues(repo, since, page);
+  
+          console.log(`Fetched ${issuesPage.length} issues from page ${page} of repo ${repo}`);
+          
+          if (issuesPage.length === 0) break;
+  
+          result = result.concat(issuesPage);
+          page++;
         }
       }
+  
       console.log(`Total issues fetched: ${result.length}`);
       return result;
     } catch (e: any) {
@@ -42,6 +43,7 @@ export class IssuesAdapter implements IIssuesAdapter {
       core.setFailed(e.message);
     }
   }
+  
 
   private async getIssues(
     repo: string,

@@ -11,21 +11,17 @@ export class IssuesAdapter {
         this.today = new Date();
     }
     async GetAllIssues(since) {
-        // console.log(
-        //   `Fetching issues ${
-        //     since ? `since: ${since.toISOString()}` : 'for all time'
-        //   }`
-        // );
         try {
             let result = [];
             for (const repo of this.repositories) {
-                let nextPage = await this.getIssues(repo, since, 1);
-                console.log(`Fetched ${nextPage.length} issues from page 1`);
-                result = result.concat(nextPage);
-                for (let page = 2; page < 100 && nextPage.length === 100; page++) {
-                    nextPage = await this.getIssues(repo, since, page);
-                    console.log(`Fetched ${nextPage.length} issues from page ${page}`);
-                    result = result.concat(nextPage);
+                let page = 1;
+                while (true) {
+                    const issuesPage = await this.getIssues(repo, since, page);
+                    console.log(`Fetched ${issuesPage.length} issues from page ${page} of repo ${repo}`);
+                    if (issuesPage.length === 0)
+                        break;
+                    result = result.concat(issuesPage);
+                    page++;
                 }
             }
             console.log(`Total issues fetched: ${result.length}`);
