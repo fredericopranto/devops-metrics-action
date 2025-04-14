@@ -18,7 +18,7 @@ export async function run(): Promise<void> {
     const repo = process.env.REPO || '';
     const owner = process.env.OWNER || '';
     const token = process.env.GITHUB_TOKEN || '';
-    const logging = process.env.LOGGING === 'true';
+    const logging = process.env.LOGGING === 'false';
     const filtered = process.env.FILTERED === 'true';
 
     if (!repo || !owner || !token) {
@@ -40,11 +40,11 @@ export async function run(): Promise<void> {
 
     // Passar a instância do Octokit para o ReleaseAdapter
     const rel = new ReleaseAdapter(octokit, owner, repositories);
-    const releaseList = (await rel.GetAllReleasesLastMonth()) || [];
+    const releaseList = (await rel.GetAllReleases()) || [];
     const df = new DeployFrequency(releaseList);
     console.log('Deployment Frequency:', df.rate());
     if (logging) {
-      console.log('Deployment Frequency Log:', df.getLog().join('\n'));
+      //console.log('Deployment Frequency Log:', df.getLog().join('\n'));
     }
 
     const prs = new PullRequestsAdapter(octokit, owner, repositories);

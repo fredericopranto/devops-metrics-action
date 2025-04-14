@@ -3,7 +3,7 @@ import {Person} from './Person.js'
 
 export interface Release {
   url: string
-  uploadUrl: string
+  upload_url: string
   id: number
   author: Person
   node_id: string

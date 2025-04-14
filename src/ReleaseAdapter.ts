@@ -16,9 +16,12 @@ export class ReleaseAdapter implements IReleaseAdapter {
     this.today = new Date();
   }
 
-  async GetAllReleasesLastMonth(): Promise<Release[] | undefined> {
-    const since = new Date(this.today.valueOf() - 61 * 24 * 60 * 60 * 1000); // Go two months back
-    console.log(`Fetching releases since: ${since.toISOString()}`);
+  async GetAllReleases(since?: Date): Promise<Release[] | undefined> {
+    console.log(
+      `Fetching releases ${
+        since ? `since: ${since.toISOString()}` : 'for all time'
+      }`
+    );
     try {
       let result: Release[] | undefined = [];
       for (const repo of this.repositories) {
@@ -42,21 +45,26 @@ export class ReleaseAdapter implements IReleaseAdapter {
 
   private async getReleases(
     repo: string,
-    since: Date,
+    since: Date | undefined,
     page: number
   ): Promise<Release[]> {
+    const params: any = {
+      owner: this.owner,
+      repo,
+      headers: {
+        'X-GitHub-Api-Version': '2022-11-28',
+      },
+      per_page: 100,
+      page,
+    };
+
+    if (since) {
+      params.since = since.toISOString();
+    }
+
     const result = await this.octokit.request(
-      'GET /repos/{owner}/{repo}/releases?state=all&since={since}&per_page={per_page}&page={page}',
-      {
-        owner: this.owner,
-        repo,
-        headers: {
-          'X-GitHub-Api-Version': '2022-11-28',
-        },
-        since: since.toISOString(),
-        per_page: 100,
-        page,
-      }
+      'GET /repos/{owner}/{repo}/releases',
+      params
     );
     return Promise.resolve(result.data) as Promise<Release[]>;
   }

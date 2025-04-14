@@ -33,7 +33,7 @@ export async function run() {
         });
         // Passar a instância do Octokit para o ReleaseAdapter
         const rel = new ReleaseAdapter(octokit, owner, repositories);
-        const releaseList = (await rel.GetAllReleasesLastMonth()) || [];
+        const releaseList = (await rel.GetAllReleases()) || [];
         const df = new DeployFrequency(releaseList);
         console.log('Deployment Frequency:', df.rate());
         if (logging) {
