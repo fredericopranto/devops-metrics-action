@@ -6,75 +6,62 @@ import type { PullRequest } from './types/PullRequest.js';
 
 export class PullRequestsAdapter implements IPullRequestsAdapter {
   octokit: Octokit;
-  repositories: string[];
   owner: string;
+  repo: string;
   today: Date;
 
-  constructor(octokit: Octokit, owner: string, repositories: string[]) {
+  constructor(octokit: Octokit, owner: string, repo: string) {
     this.octokit = octokit;
     this.owner = owner;
-    this.repositories = repositories;
+    this.repo = repo;
     this.today = new Date();
   }
 
   async GetAllPRs(since?: Date): Promise<PullRequest[] | undefined> {
-    // console.log(
-    //   `Fetching pull requests ${
-    //     since ? `since: ${since.toISOString()}` : 'for all time'
-    //   }`
-    // );
     try {
       let result: PullRequest[] = [];
-      for (const repo of this.repositories) {
-        //console.log(`Fetching pull requests for repository: ${repo}`);
-        let nextPage = await this.getPRs(repo, since, 1);
-        //console.log(`Fetched ${nextPage.length} pull requests from page 1`);
+      let page = 1;
+      let nextPage: PullRequest[] = [];
+
+      do {
+        //console.log(`Fetching pull requests for repository "${this.repo}", page ${page}...`);
+        nextPage = await this.getPRs(since, page);
+        //console.log(`Fetched ${nextPage.length} pull requests from page ${page}`);
         result = result.concat(nextPage);
-        for (let page = 2; page < 100 && nextPage.length === 100; page++) {
-          nextPage = await this.getPRs(repo, since, page);
-          //console.log(`Fetched ${nextPage.length} pull requests from page ${page}`);
-          result = result.concat(nextPage);
-        }
-      }
-      //console.log(`Total pull requests fetched: ${result.length}`);
+        page++;
+      } while (nextPage.length === 100);
+
+      //console.log(`Total pull requests fetched for repository "${this.repo}": ${result.length}`);
       return result;
     } catch (e: any) {
-      console.error(`Error fetching pull requests: ${e.message}`);
+      console.error(`Error fetching pull requests for repository "${this.repo}": ${e.message}`);
       core.setFailed(e.message);
+      return [];
     }
   }
 
-  private async getPRs(
-    repo: string,
-    since: Date | undefined,
-    page: number
-  ): Promise<PullRequest[]> {
+  private async getPRs(since: Date | undefined, page: number): Promise<PullRequest[]> {
     const params: any = {
       owner: this.owner,
-      repo,
+      repo: this.repo,
       headers: {
         'X-GitHub-Api-Version': '2022-11-28',
       },
       per_page: 100,
       page,
+      state: 'closed',
     };
 
     if (since) {
       params.since = since.toISOString();
     }
 
-    // console.log(
-    //   `Requesting pull requests for repo: ${repo}, page: ${page}, ${
-    //     since ? `since: ${since.toISOString()}` : 'no date filter'
-    //   }`
-    // );
-
     const result = await this.octokit.request(
-      'GET /repos/{owner}/{repo}/pulls?state=closed',
+      'GET /repos/{owner}/{repo}/pulls',
       params
     );
 
-    //console.log(`Response for repo: ${repo}, page: ${page}: ${result.data.length} pull requests`);
-    return Promise.resolve(result.data) as Promise<PullRequest[]>;
+    //console.log(`Fetched ${result.data.length} pull requests from page ${page} for repository "${this.repo}"`);
+    return result.data as PullRequest[];
   }
 }

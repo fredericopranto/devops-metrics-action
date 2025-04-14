@@ -32,27 +32,21 @@ export async function run() {
         });
         for (const repository of repositories) {
             console.log(`Processando repositório: ${repository}`);
-            // Separar owner e repo do formato "owner/repo"
             const [owner, repo] = repository.split('/');
-            // Deployment Frequency (ajustado para receber um único repositório)
+            // Deployment Frequency
             const rel = new ReleaseAdapter(octokit, owner, repo);
             const releaseList = (await rel.GetAllReleases()) || [];
             const df = new DeployFrequency(releaseList);
             console.log(`Deployment Frequency (${repository}):`, df.rate());
-            if (logging) {
-                //console.log('Deployment Frequency Log:', df.getLog().join('\n'));
-            }
-            // Pull Requests e Commits (mantém a lógica atual com lista)
-            const prs = new PullRequestsAdapter(octokit, owner, repositories);
+            // Lead Time
+            const prs = new PullRequestsAdapter(octokit, owner, repo);
             const commits = new CommitsAdapter(octokit);
             const pulls = (await prs.GetAllPRs()) || [];
             const lt = new LeadTime(pulls, releaseList, commits);
             const leadTime = await lt.getLeadTime(filtered);
             console.log(`Lead Time (${repository}):`, leadTime);
-            if (logging) {
-                //console.log('Lead Time Log:', lt.getLog().join('\n'));
-            }
-            // Issues (mantém a lógica atual com lista)
+            // Change Failure Rate
+            // Mean Time to Restore
             const issueAdapter = new IssuesAdapter(octokit, owner, repositories);
             const issueList = (await issueAdapter.GetAllIssues()) || [];
             if (issueList.length > 0) {
