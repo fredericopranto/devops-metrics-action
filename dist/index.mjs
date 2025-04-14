@@ -31,33 +31,33 @@ export async function run() {
             request: { fetch },
         });
         for (const repository of repositories) {
-            console.log(`Processando repositório: ${repository}`);
+            console.log(`>>>> Processando repositório: ${repository}`);
             const [owner, repo] = repository.split('/');
             // Deployment Frequency
             const rel = new ReleaseAdapter(octokit, owner, repo);
             const releaseList = (await rel.GetAllReleases()) || [];
             const df = new DeployFrequency(releaseList);
-            console.log(`Deployment Frequency (${repository}):`, df.rate());
+            console.log(`Deployment Frequency:`, df.rate());
             // Lead Time
             const prs = new PullRequestsAdapter(octokit, owner, repo);
             const commits = new CommitsAdapter(octokit);
             const pulls = (await prs.GetAllPRs()) || [];
             const lt = new LeadTime(pulls, releaseList, commits);
             const leadTime = await lt.getLeadTime(filtered);
-            console.log(`Lead Time (${repository}):`, leadTime);
+            console.log(`Lead Time:`, leadTime);
             // Change Failure Rate
             // Mean Time to Restore
-            const issueAdapter = new IssuesAdapter(octokit, owner, repositories);
+            const issueAdapter = new IssuesAdapter(octokit, owner, repo);
             const issueList = (await issueAdapter.GetAllIssues()) || [];
             if (issueList.length > 0) {
                 const cfr = new ChangeFailureRate(issueList, releaseList);
-                console.log(`Change Failure Rate (${repository}):`, cfr.Cfr());
+                console.log(`Change Failure Rate:`, cfr.Cfr());
                 const mttr = new MeanTimeToRestore(issueList, releaseList);
-                console.log(`Mean Time to Restore (${repository}):`, mttr.mttr());
+                console.log(`Mean Time to Restore:`, mttr.mttr());
             }
             else {
-                console.log(`Change Failure Rate (${repository}): empty issue list`);
-                console.log(`Mean Time to Restore (${repository}): empty issue list`);
+                console.log(`Change Failure Rate: empty issue list`);
+                console.log(`Mean Time to Restore: empty issue list`);
             }
         }
     }

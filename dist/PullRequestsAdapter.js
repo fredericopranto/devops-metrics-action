@@ -16,13 +16,13 @@ export class PullRequestsAdapter {
             let page = 1;
             let nextPage = [];
             do {
-                console.log(`Fetching pull requests for repository "${this.repo}", page ${page}...`);
+                //console.log(`Fetching pull requests for repository "${this.repo}", page ${page}...`);
                 nextPage = await this.getPRs(since, page);
-                console.log(`Fetched ${nextPage.length} pull requests from page ${page}`);
+                //console.log(`Fetched ${nextPage.length} pull requests from page ${page}`);
                 result = result.concat(nextPage);
                 page++;
             } while (nextPage.length === 100);
-            console.log(`Total pull requests fetched for repository "${this.repo}": ${result.length}`);
+            //console.log(`Total pull requests fetched for repository "${this.repo}": ${result.length}`);
             return result;
         }
         catch (e) {
@@ -46,7 +46,7 @@ export class PullRequestsAdapter {
             params.since = since.toISOString();
         }
         const result = await this.octokit.request('GET /repos/{owner}/{repo}/pulls', params);
-        console.log(`Fetched ${result.data.length} pull requests from page ${page} for repository "${this.repo}"`);
+        //console.log(`Fetched ${result.data.length} pull requests from page ${page} for repository "${this.repo}"`);
         return result.data;
     }
 }

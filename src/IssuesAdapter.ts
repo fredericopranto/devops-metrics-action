@@ -7,58 +7,49 @@ import { Issue } from './types/Issue.js';
 export class IssuesAdapter implements IIssuesAdapter {
   octokit: Octokit;
   owner: string;
-  repositories: string[];
+  repo: string;
   today: Date;
 
-  constructor(octokit: Octokit, owner: string, repositories: string[]) {
+  constructor(octokit: Octokit, owner: string, repo: string) {
     this.octokit = octokit;
     this.owner = owner;
-    this.repositories = repositories;
+    this.repo = repo;
     this.today = new Date();
   }
 
   async GetAllIssues(since?: Date): Promise<Issue[] | undefined> {
     try {
       let result: Issue[] = [];
-  
-      for (const repo of this.repositories) {
-        let page = 1;
-  
-        while (true) {
-          const issuesPage = await this.getIssues(repo, since, page);
-  
-          //console.log(`Fetched ${issuesPage.length} issues from page ${page} of repo ${repo}`);
-          
-          if (issuesPage.length === 0) break;
-  
-          result = result.concat(issuesPage);
-          page++;
-        }
-      }
-  
-      //console.log(`Total issues fetched: ${result.length}`);
+      let page = 1;
+      let nextPage: Issue[] = [];
+
+      do {
+        //console.log(`Fetching issues for repository "${this.repo}", page ${page}...`);
+        nextPage = await this.getIssues(since, page);
+        //console.log(`Fetched ${nextPage.length} issues from page ${page}`);
+        result = result.concat(nextPage);
+        page++;
+      } while (nextPage.length === 100); 
+
+      //console.log(`Total issues fetched for repository "${this.repo}": ${result.length}`);
       return result;
     } catch (e: any) {
-      //console.error(`Error fetching issues: ${e.message}`);
+      console.error(`Error fetching issues for repository "${this.repo}": ${e.message}`);
       core.setFailed(e.message);
+      return [];
     }
   }
-  
 
-  private async getIssues(
-    repo: string,
-    since: Date | undefined,
-    page: number
-  ): Promise<Issue[]> {
+  private async getIssues(since: Date | undefined, page: number): Promise<Issue[]> {
     const params: any = {
       owner: this.owner,
-      repo,
+      repo: this.repo,
       headers: {
         'X-GitHub-Api-Version': '2022-11-28',
       },
       per_page: 100,
       page,
-      state: 'all', // Inclui issues abertas e fechadas
+      state: 'all', 
     };
 
     if (since) {
@@ -70,15 +61,10 @@ export class IssuesAdapter implements IIssuesAdapter {
       params
     );
 
-    //console.log('Rate limit remaining:', result.headers['x-ratelimit-remaining']);
-
     // Filtrar apenas issues (excluindo pull requests)
     const issues = result.data.filter((issue: any) => !issue.pull_request);
 
-    //console.log(
-    //  `Fetched ${issues.length} issues for repo: ${repo}, page: ${page}`
-    //);
-
+    //console.log(`Fetched ${issues.length} issues for repo: "${this.repo}", page: ${page}`);
     return issues as Issue[];
   }
 }
