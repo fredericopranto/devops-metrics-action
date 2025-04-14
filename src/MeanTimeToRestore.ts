@@ -70,7 +70,7 @@ export class MeanTimeToRestore {
         repo: repoName,
       });
     }
-    console.log(`Valid bugs for MTTR calculation: ${values.length}`);
+    //console.log(`Valid bugs for MTTR calculation: ${values.length}`);
     return values;
   }
 
@@ -81,8 +81,8 @@ export class MeanTimeToRestore {
         bugs.push(issue);
       }
     }
-    console.log(`Total issues: ${this.issues.length}`);
-    console.log(`Filtered bugs: ${bugs.length}`);
+    //console.log(`Total issues: ${this.issues.length}`);
+    //console.log(`Filtered bugs: ${bugs.length}`);
     return bugs;
   }
 
@@ -149,7 +149,7 @@ export class MeanTimeToRestore {
     }
 
     const mttr = Math.round((sum / ttr.length / ONE_DAY) * 100) / 100;
-    console.log(`Mean Time to Restore: ${mttr} days`);
+    //console.log(`Mean Time to Restore: ${mttr} days`);
     return mttr;
   }
 }

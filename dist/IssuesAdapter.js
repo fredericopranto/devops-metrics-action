@@ -17,18 +17,18 @@ export class IssuesAdapter {
                 let page = 1;
                 while (true) {
                     const issuesPage = await this.getIssues(repo, since, page);
-                    console.log(`Fetched ${issuesPage.length} issues from page ${page} of repo ${repo}`);
+                    //console.log(`Fetched ${issuesPage.length} issues from page ${page} of repo ${repo}`);
                     if (issuesPage.length === 0)
                         break;
                     result = result.concat(issuesPage);
                     page++;
                 }
             }
-            console.log(`Total issues fetched: ${result.length}`);
+            //console.log(`Total issues fetched: ${result.length}`);
             return result;
         }
         catch (e) {
-            console.error(`Error fetching issues: ${e.message}`);
+            //console.error(`Error fetching issues: ${e.message}`);
             core.setFailed(e.message);
         }
     }

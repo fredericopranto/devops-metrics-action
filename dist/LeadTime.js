@@ -30,12 +30,12 @@ export class LeadTime {
         if (filtered) {
             this.log.push(`\nLog is filtered - only feat and fix.`);
         }
-        console.log(`Starting Lead Time calculation for ${this.pulls.length} pull requests...`);
+        //console.log(`Starting Lead Time calculation for ${this.pulls.length} pull requests...`);
         const leadTimes = [];
         let processedCount = 0; // Contador para acompanhar o progresso
         for (const pull of this.pulls) {
             processedCount++;
-            //console.log(`Processing PR ${processedCount}/${this.pulls.length}: ${pull.title}`);
+            console.log(`Processing PR ${processedCount}/${this.pulls.length}: ${pull.title}`);
             if (typeof pull.merged_at === 'string' &&
                 pull.merged_at &&
                 typeof pull.base.repo.name === 'string' &&
@@ -60,7 +60,7 @@ export class LeadTime {
                 const commits = (await this.commitsAdapter.getCommitsFromUrl(pull.commits_url));
                 //console.timeEnd(`Fetching commits for PR: ${pull.title}`);
                 if (commits.length === 0) {
-                    console.log(`No commits found for PR "${pull.title}".`);
+                    //console.log(`No commits found for PR "${pull.title}".`);
                     continue;
                 }
                 const commitTime = commits
