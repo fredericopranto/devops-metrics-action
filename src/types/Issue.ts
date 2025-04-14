@@ -60,6 +60,6 @@ export interface Issue {
   body: string //  ":robot: I have created a release *beep* *boop*\n---\n\n\n## [0.0.3](https://github.com/stenjo/dora/compare/v0.0.2...v0.0.3) (2023-04-22)\n\n\n### Bug Fixes\n\n* clean up ([5265568](https://github.com/stenjo/dora/commit/5265568661241b8be64cf7df2ea455ba736908ee))\n\n---\nThis PR was generated with [Release Please](https://github.com/googleapis/release-please). See [documentation](https://github.com/googleapis/release-please#release-please).",
   reactions: Reactions
   timeline_url: string //  "https://api.github.com/repos/stenjo/dora/issues/13/timeline",
-  performed_via_github_app: string //  null,
+  performed_via_github_app: string | null//  null,
   state_reason: string //  null
 }

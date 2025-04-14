@@ -17,11 +17,14 @@ export class IssuesAdapter implements IIssuesAdapter {
     this.today = new Date();
   }
 
-  async GetAllIssuesLastMonth(): Promise<Issue[] | undefined> {
-    const since = new Date(this.today.valueOf() - 61 * 24 * 60 * 60 * 1000); // Go two months back
-    console.log(`Fetching issues since: ${since.toISOString()}`);
+  async GetAllIssues(since?: Date): Promise<Issue[] | undefined> {
+    console.log(
+      `Fetching issues ${
+        since ? `since: ${since.toISOString()}` : 'for all time'
+      }`
+    );
     try {
-      let result: Issue[] | undefined = [];
+      let result: Issue[] = [];
       for (const repo of this.repositories) {
         console.log(`Fetching issues for repository: ${repo}`);
         let nextPage = await this.getIssues(repo, since, 1);
@@ -43,23 +46,35 @@ export class IssuesAdapter implements IIssuesAdapter {
 
   private async getIssues(
     repo: string,
-    since: Date,
+    since: Date | undefined,
     page: number
   ): Promise<Issue[]> {
-    const result = await this.octokit.request(
-      'GET /repos/{owner}/{repo}/issues?state=all&since={since}&per_page={per_page}&page={page}',
-      {
-        owner: this.owner,
-        repo,
-        headers: {
-          'X-GitHub-Api-Version': '2022-11-28',
-        },
-        since: since.toISOString(),
-        per_page: 100,
-        page,
-      }
+    const params: any = {
+      owner: this.owner,
+      repo,
+      headers: {
+        'X-GitHub-Api-Version': '2022-11-28',
+      },
+      per_page: 100,
+      page,
+    };
+
+    if (since) {
+      params.since = since.toISOString();
+    }
+
+    console.log(
+      `Requesting issues for repo: ${repo}, page: ${page}, ${
+        since ? `since: ${since.toISOString()}` : 'no date filter'
+      }`
     );
 
+    const result = await this.octokit.request(
+      'GET /repos/{owner}/{repo}/issues',
+      params
+    );
+
+    //console.log(`Response for repo: ${repo}, page: ${page}: ${result.data.length} issues`);
     return Promise.resolve(result.data) as Promise<Issue[]>;
   }
 }

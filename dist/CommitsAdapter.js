@@ -1,4 +1,3 @@
-import * as core from '@actions/core';
 export class CommitsAdapter {
     octokit;
     constructor(octokit) {
@@ -6,11 +5,12 @@ export class CommitsAdapter {
     }
     async getCommitsFromUrl(url) {
         try {
-            const result = await this.getCommits(url);
-            return result;
+            const response = await this.octokit.request(`GET ${url}`);
+            return response.data;
         }
-        catch (e) {
-            core.setFailed(e.message);
+        catch (error) {
+            console.error(`Error fetching commits from URL "${url}": ${error}`);
+            return []; // Retorna uma lista vazia em caso de erro
         }
     }
     async getCommits(url) {

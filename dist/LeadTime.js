@@ -6,19 +6,15 @@ export class LeadTime {
     today;
     commitsAdapter;
     constructor(pulls, releases, commitsAdapter, today = null) {
-        if (today === null) {
-            this.today = new Date();
-        }
-        else {
-            this.today = today;
-        }
-        this.pulls = pulls.filter(p => +new Date(p.merged_at) > this.today.valueOf() - 31 * ONE_DAY);
-        this.releases = releases.map(r => {
+        this.today = today ? today : new Date();
+        // Removido o filtro de 31 dias
+        this.pulls = pulls;
+        this.releases = releases.map((r) => {
             return {
                 published: +new Date(r.published_at),
                 url: r.url,
                 name: r.name,
-                published_at: r.published_at
+                published_at: r.published_at,
             };
         });
         this.commitsAdapter = commitsAdapter;
@@ -28,33 +24,49 @@ export class LeadTime {
     }
     async getLeadTime(filtered = false) {
         if (this.pulls.length === 0 || this.releases.length === 0) {
+            console.log('No pull requests or releases available.');
             return 0;
         }
         if (filtered) {
             this.log.push(`\nLog is filtered - only feat and fix.`);
         }
+        console.log(`Starting Lead Time calculation for ${this.pulls.length} pull requests...`);
         const leadTimes = [];
+        let processedCount = 0; // Contador para acompanhar o progresso
         for (const pull of this.pulls) {
+            processedCount++;
+            //console.log(`Processing PR ${processedCount}/${this.pulls.length}: ${pull.title}`);
             if (typeof pull.merged_at === 'string' &&
                 pull.merged_at &&
                 typeof pull.base.repo.name === 'string' &&
                 pull.base.repo.name &&
-                pull.base.ref === 'main') {
+                pull.base.ref === 'master') {
                 if (filtered &&
                     !(pull.title.startsWith('feat') || pull.title.startsWith('fix'))) {
+                    //console.log(`Skipping PR due to filter: ${pull.title}`);
                     continue;
                 }
                 const mergeTime = +new Date(pull.merged_at);
-                const laterReleases = this.releases.filter(r => r.published > mergeTime && r.url.includes(pull.base.repo.name));
+                //console.log(`Merge time for PR "${pull.title}": ${new Date(mergeTime).toISOString()}`);
+                const laterReleases = this.releases.filter((r) => r.published > mergeTime && r.url.includes(pull.base.repo.name));
                 if (laterReleases.length === 0) {
+                    //console.log(`No releases found for PR "${pull.title}" after merge.`);
                     continue;
                 }
                 const deployTime = laterReleases[0].published;
+                //console.log(`Deploy time for PR "${pull.title}": ${new Date(deployTime).toISOString()}`);
                 this.log.push(`pull->      ${pull.merged_at} : ${pull.title}`);
+                //console.time(`Fetching commits for PR: ${pull.title}`);
                 const commits = (await this.commitsAdapter.getCommitsFromUrl(pull.commits_url));
+                //console.timeEnd(`Fetching commits for PR: ${pull.title}`);
+                if (commits.length === 0) {
+                    console.log(`No commits found for PR "${pull.title}".`);
+                    continue;
+                }
                 const commitTime = commits
-                    .map(c => +new Date(c.commit.committer.date))
+                    .map((c) => +new Date(c.commit.committer.date))
                     .sort((a, b) => a - b)[0];
+                //console.log(`First commit time for PR "${pull.title}": ${new Date(commitTime).toISOString()}`);
                 const firstCommit = commits.sort((a, b) => {
                     return (+new Date(a.commit.committer.date) -
                         +new Date(b.commit.committer.date));
@@ -63,14 +75,22 @@ export class LeadTime {
                 this.log.push(`  release-> ${laterReleases[0].published_at} : ${laterReleases[0].name}`);
                 const leadTime = (deployTime - commitTime) / ONE_DAY;
                 leadTimes.push(leadTime);
+                //console.log(`Lead Time for PR "${pull.title}": ${leadTime.toFixed(2)} days`);
                 this.log.push(`  ${leadTime.toFixed(2)} days`);
             }
+            else {
+                //console.log(`Skipping PR "${pull.title}" - Not merged into master.`);
+            }
         }
+        //console.log(`Finished processing ${processedCount}/${this.pulls.length} pull requests.`);
         if (leadTimes.length === 0) {
+            console.log('No valid Lead Times calculated.');
             return 0;
         }
-        return (Math.round((leadTimes.reduce((p, c) => p + c) / leadTimes.length) * 100) /
-            100);
+        const averageLeadTime = Math.round((leadTimes.reduce((p, c) => p + c) / leadTimes.length) * 100) /
+            100;
+        //console.log(`Average Lead Time: ${averageLeadTime} days`);
+        return averageLeadTime;
     }
 }
 //# sourceMappingURL=LeadTime.js.map

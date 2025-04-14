@@ -17,25 +17,25 @@ export class ReleaseAdapter implements IReleaseAdapter {
   }
 
   async GetAllReleases(since?: Date): Promise<Release[] | undefined> {
-    console.log(
-      `Fetching releases ${
-        since ? `since: ${since.toISOString()}` : 'for all time'
-      }`
-    );
+    // console.log(
+    //   `Fetching releases ${
+    //     since ? `since: ${since.toISOString()}` : 'for all time'
+    //   }`
+    // );
     try {
       let result: Release[] | undefined = [];
       for (const repo of this.repositories) {
-        console.log(`Fetching releases for repository: ${repo}`);
+        //console.log(`Fetching releases for repository: ${repo}`);
         let nextPage = await this.getReleases(repo, since, 1);
-        console.log(`Fetched ${nextPage.length} releases from page 1`);
+        //console.log(`Fetched ${nextPage.length} releases from page 1`);
         result = result.concat(nextPage);
         for (let page = 2; page < 100 && nextPage.length === 100; page++) {
           nextPage = await this.getReleases(repo, since, page);
-          console.log(`Fetched ${nextPage.length} releases from page ${page}`);
+          //console.log(`Fetched ${nextPage.length} releases from page ${page}`);
           result = result.concat(nextPage);
         }
       }
-      console.log(`Total releases fetched: ${result.length}`);
+      //console.log(`Total releases fetched: ${result.length}`);
       return result;
     } catch (e: any) {
       console.error(`Error fetching releases: ${e.message}`);

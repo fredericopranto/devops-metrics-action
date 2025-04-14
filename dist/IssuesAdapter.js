@@ -10,9 +10,8 @@ export class IssuesAdapter {
         this.repositories = repositories;
         this.today = new Date();
     }
-    async GetAllIssuesLastMonth() {
-        const since = new Date(this.today.valueOf() - 61 * 24 * 60 * 60 * 1000); // Go two months back
-        console.log(`Fetching issues since: ${since.toISOString()}`);
+    async GetAllIssues(since) {
+        console.log(`Fetching issues ${since ? `since: ${since.toISOString()}` : 'for all time'}`);
         try {
             let result = [];
             for (const repo of this.repositories) {
@@ -35,16 +34,21 @@ export class IssuesAdapter {
         }
     }
     async getIssues(repo, since, page) {
-        const result = await this.octokit.request('GET /repos/{owner}/{repo}/issues?state=all&since={since}&per_page={per_page}&page={page}', {
+        const params = {
             owner: this.owner,
             repo,
             headers: {
                 'X-GitHub-Api-Version': '2022-11-28',
             },
-            since: since.toISOString(),
             per_page: 100,
             page,
-        });
+        };
+        if (since) {
+            params.since = since.toISOString();
+        }
+        console.log(`Requesting issues for repo: ${repo}, page: ${page}, ${since ? `since: ${since.toISOString()}` : 'no date filter'}`);
+        const result = await this.octokit.request('GET /repos/{owner}/{repo}/issues', params);
+        //console.log(`Response for repo: ${repo}, page: ${page}: ${result.data.length} issues`);
         return Promise.resolve(result.data);
     }
 }

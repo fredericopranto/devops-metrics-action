@@ -11,12 +11,13 @@ export class CommitsAdapter implements ICommitsAdapter {
     this.octokit = octokit;
   }
 
-  async getCommitsFromUrl(url: string): Promise<Commit[] | undefined> {
+  async getCommitsFromUrl(url: string): Promise<Commit[]> {
     try {
-      const result = await this.getCommits(url);
-      return result;
-    } catch (e: any) {
-      core.setFailed(e.message);
+      const response = await this.octokit.request(`GET ${url}`);
+      return response.data;
+    } catch (error) {
+      console.error(`Error fetching commits from URL "${url}": ${error}`);
+      return []; // Retorna uma lista vazia em caso de erro
     }
   }
 

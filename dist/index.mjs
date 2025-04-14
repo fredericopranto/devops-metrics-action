@@ -41,7 +41,7 @@ export async function run() {
         }
         const prs = new PullRequestsAdapter(octokit, owner, repositories);
         const commits = new CommitsAdapter(octokit);
-        const pulls = (await prs.GetAllPRsLastMonth()) || [];
+        const pulls = (await prs.GetAllPRs()) || [];
         const lt = new LeadTime(pulls, releaseList, commits);
         const leadTime = await lt.getLeadTime(filtered);
         console.log('Lead Time:', leadTime);
@@ -49,7 +49,7 @@ export async function run() {
             console.log('Lead Time Log:', lt.getLog().join('\n'));
         }
         const issueAdapter = new IssuesAdapter(octokit, owner, repositories);
-        const issueList = (await issueAdapter.GetAllIssuesLastMonth()) || [];
+        const issueList = (await issueAdapter.GetAllIssues()) || [];
         if (issueList.length > 0) {
             const cfr = new ChangeFailureRate(issueList, releaseList);
             console.log('Change Failure Rate:', cfr.Cfr());

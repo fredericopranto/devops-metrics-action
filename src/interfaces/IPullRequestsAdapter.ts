@@ -1,5 +1,5 @@
 import {PullRequest} from '../types/PullRequest.js'
 
 export interface IPullRequestsAdapter {
-  GetAllPRsLastMonth(): Promise<PullRequest[] | undefined>
+  GetAllPRs(): Promise<PullRequest[] | undefined>
 }
