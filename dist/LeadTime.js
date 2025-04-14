@@ -35,7 +35,7 @@ export class LeadTime {
         let processedCount = 0; // Contador para acompanhar o progresso
         for (const pull of this.pulls) {
             processedCount++;
-            console.log(`Processing PR ${processedCount}/${this.pulls.length}: ${pull.title}`);
+            //console.log(`Processing PR ${processedCount}/${this.pulls.length}: ${pull.title}`);
             if (typeof pull.merged_at === 'string' &&
                 pull.merged_at &&
                 typeof pull.base.repo.name === 'string' &&

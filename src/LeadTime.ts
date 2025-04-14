@@ -60,7 +60,7 @@ export class LeadTime {
 
     for (const pull of this.pulls) {
       processedCount++;
-      console.log(`Processing PR ${processedCount}/${this.pulls.length}: ${pull.title}`);
+      //console.log(`Processing PR ${processedCount}/${this.pulls.length}: ${pull.title}`);
 
       if (
         typeof pull.merged_at === 'string' &&
