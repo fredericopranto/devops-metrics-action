@@ -28,7 +28,7 @@ export class ReleaseAdapter implements IReleaseAdapter {
         page++;
       } while (nextPage.length === 100); // Continua enquanto houver 100 releases por página
 
-      console.log(`Total releases fetched for repository "${this.repo}": ${result.length}`);
+      //console.log(`Total releases fetched for repository "${this.repo}": ${result.length}`);
       return result;
     } catch (e: any) {
       console.error(`Error fetching releases for repository "${this.repo}": ${e.message}`);
@@ -57,7 +57,7 @@ export class ReleaseAdapter implements IReleaseAdapter {
       params
     );
 
-    console.log(`Fetched ${result.data.length} releases from page ${page} for repository "${this.repo}"`);
+    //console.log(`Fetched ${result.data.length} releases from page ${page} for repository "${this.repo}"`);
     return result.data as Release[];
   }
 }

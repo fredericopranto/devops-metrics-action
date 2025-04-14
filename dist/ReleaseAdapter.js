@@ -20,7 +20,7 @@ export class ReleaseAdapter {
                 result = result.concat(nextPage);
                 page++;
             } while (nextPage.length === 100); // Continua enquanto houver 100 releases por página
-            console.log(`Total releases fetched for repository "${this.repo}": ${result.length}`);
+            //console.log(`Total releases fetched for repository "${this.repo}": ${result.length}`);
             return result;
         }
         catch (e) {
@@ -43,7 +43,7 @@ export class ReleaseAdapter {
             params.since = since.toISOString();
         }
         const result = await this.octokit.request('GET /repos/{owner}/{repo}/releases', params);
-        console.log(`Fetched ${result.data.length} releases from page ${page} for repository "${this.repo}"`);
+        //console.log(`Fetched ${result.data.length} releases from page ${page} for repository "${this.repo}"`);
         return result.data;
     }
 }
