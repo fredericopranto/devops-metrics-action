@@ -1,5 +1,5 @@
-import type {Issue} from './types/Issue'
-import type {Release} from './types/Release'
+import type {Issue} from './types/Issue.js'
+import type {Release} from './types/Release.js'
 
 export class ChangeFailureRate {
   today: Date

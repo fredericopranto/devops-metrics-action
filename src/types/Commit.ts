@@ -1,4 +1,4 @@
-import {Person} from './Person'
+import {Person} from './Person.js'
 
 interface CommitPerson {
   name: string // "Sten Otto Johnsen",

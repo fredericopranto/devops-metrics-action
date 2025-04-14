@@ -1,4 +1,4 @@
-import {Release} from '../types/Release'
+import {Release} from '../types/Release.js'
 
 export interface IReleaseAdapter {
   today: Date

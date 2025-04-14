@@ -1,4 +1,4 @@
-import {Issue} from '../types/Issue'
+import {Issue} from '../types/Issue.js'
 
 export interface IIssuesAdapter {
   today: Date

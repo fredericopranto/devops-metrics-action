@@ -1,4 +1,4 @@
-import {Person} from './Person'
+import {Person} from './Person.js'
 
 interface Label {
   id: number // 5382688746,

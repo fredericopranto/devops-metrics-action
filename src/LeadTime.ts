@@ -1,7 +1,7 @@
-import {PullRequest} from './types/PullRequest'
-import {Release} from './types/Release'
-import {ICommitsAdapter} from './interfaces/ICommitsAdapter'
-import {Commit} from './types/Commit'
+import {PullRequest} from './types/PullRequest.js'
+import {Release} from './types/Release.js'
+import {ICommitsAdapter} from './interfaces/ICommitsAdapter.js'
+import {Commit} from './types/Commit.js'
 
 const ONE_DAY = 24 * 60 * 60 * 1000
 export class LeadTime {
