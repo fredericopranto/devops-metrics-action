@@ -7,9 +7,6 @@ import { DeployFrequency } from './DeployFrequency.js';
 import { ChangeFailureRate } from './ChangeFailureRate.js';
 import { IssuesAdapter } from './IssuesAdapter.js';
 import { MeanTimeToRestore } from './MeanTimeToRestore.js';
-import { PullRequestsAdapter } from './PullRequestsAdapter.js';
-import { CommitsAdapter } from './CommitsAdapter.js';
-import { LeadTime } from './LeadTime.js';
 dotenv.config();
 export async function run() {
     try {
@@ -39,15 +36,15 @@ export async function run() {
         if (logging) {
             //console.log('Deployment Frequency Log:', df.getLog().join('\n'));
         }
-        const prs = new PullRequestsAdapter(octokit, owner, repositories);
-        const commits = new CommitsAdapter(octokit);
-        const pulls = (await prs.GetAllPRs()) || [];
-        const lt = new LeadTime(pulls, releaseList, commits);
-        const leadTime = await lt.getLeadTime(filtered);
-        console.log('Lead Time:', leadTime);
-        if (logging) {
-            console.log('Lead Time Log:', lt.getLog().join('\n'));
-        }
+        // const prs = new PullRequestsAdapter(octokit, owner, repositories);
+        // const commits = new CommitsAdapter(octokit);
+        // const pulls = (await prs.GetAllPRs()) || [];
+        // const lt = new LeadTime(pulls, releaseList, commits);
+        // const leadTime = await lt.getLeadTime(filtered);
+        // console.log('Lead Time:', leadTime);
+        // if (logging) {
+        //   //console.log('Lead Time Log:', lt.getLog().join('\n'));
+        // }
         const issueAdapter = new IssuesAdapter(octokit, owner, repositories);
         const issueList = (await issueAdapter.GetAllIssues()) || [];
         if (issueList.length > 0) {

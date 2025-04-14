@@ -11,11 +11,14 @@ export class IssuesAdapter {
         this.today = new Date();
     }
     async GetAllIssues(since) {
-        console.log(`Fetching issues ${since ? `since: ${since.toISOString()}` : 'for all time'}`);
+        // console.log(
+        //   `Fetching issues ${
+        //     since ? `since: ${since.toISOString()}` : 'for all time'
+        //   }`
+        // );
         try {
             let result = [];
             for (const repo of this.repositories) {
-                console.log(`Fetching issues for repository: ${repo}`);
                 let nextPage = await this.getIssues(repo, since, 1);
                 console.log(`Fetched ${nextPage.length} issues from page 1`);
                 result = result.concat(nextPage);
@@ -42,14 +45,19 @@ export class IssuesAdapter {
             },
             per_page: 100,
             page,
+            state: 'all', // Inclui issues abertas e fechadas
         };
         if (since) {
             params.since = since.toISOString();
         }
-        console.log(`Requesting issues for repo: ${repo}, page: ${page}, ${since ? `since: ${since.toISOString()}` : 'no date filter'}`);
         const result = await this.octokit.request('GET /repos/{owner}/{repo}/issues', params);
-        //console.log(`Response for repo: ${repo}, page: ${page}: ${result.data.length} issues`);
-        return Promise.resolve(result.data);
+        //console.log('Rate limit remaining:', result.headers['x-ratelimit-remaining']);
+        // Filtrar apenas issues (excluindo pull requests)
+        const issues = result.data.filter((issue) => !issue.pull_request);
+        //console.log(
+        //  `Fetched ${issues.length} issues for repo: ${repo}, page: ${page}`
+        //);
+        return issues;
     }
 }
 //# sourceMappingURL=IssuesAdapter.js.map

@@ -18,15 +18,14 @@ export class IssuesAdapter implements IIssuesAdapter {
   }
 
   async GetAllIssues(since?: Date): Promise<Issue[] | undefined> {
-    console.log(
-      `Fetching issues ${
-        since ? `since: ${since.toISOString()}` : 'for all time'
-      }`
-    );
+    // console.log(
+    //   `Fetching issues ${
+    //     since ? `since: ${since.toISOString()}` : 'for all time'
+    //   }`
+    // );
     try {
       let result: Issue[] = [];
       for (const repo of this.repositories) {
-        console.log(`Fetching issues for repository: ${repo}`);
         let nextPage = await this.getIssues(repo, since, 1);
         console.log(`Fetched ${nextPage.length} issues from page 1`);
         result = result.concat(nextPage);
@@ -57,24 +56,27 @@ export class IssuesAdapter implements IIssuesAdapter {
       },
       per_page: 100,
       page,
+      state: 'all', // Inclui issues abertas e fechadas
     };
 
     if (since) {
       params.since = since.toISOString();
     }
 
-    console.log(
-      `Requesting issues for repo: ${repo}, page: ${page}, ${
-        since ? `since: ${since.toISOString()}` : 'no date filter'
-      }`
-    );
-
     const result = await this.octokit.request(
       'GET /repos/{owner}/{repo}/issues',
       params
     );
 
-    //console.log(`Response for repo: ${repo}, page: ${page}: ${result.data.length} issues`);
-    return Promise.resolve(result.data) as Promise<Issue[]>;
+    //console.log('Rate limit remaining:', result.headers['x-ratelimit-remaining']);
+
+    // Filtrar apenas issues (excluindo pull requests)
+    const issues = result.data.filter((issue: any) => !issue.pull_request);
+
+    //console.log(
+    //  `Fetched ${issues.length} issues for repo: ${repo}, page: ${page}`
+    //);
+
+    return issues as Issue[];
   }
 }

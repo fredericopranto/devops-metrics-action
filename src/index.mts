@@ -47,15 +47,15 @@ export async function run(): Promise<void> {
       //console.log('Deployment Frequency Log:', df.getLog().join('\n'));
     }
 
-    const prs = new PullRequestsAdapter(octokit, owner, repositories);
-    const commits = new CommitsAdapter(octokit);
-    const pulls = (await prs.GetAllPRs()) || [];
-    const lt = new LeadTime(pulls, releaseList, commits);
-    const leadTime = await lt.getLeadTime(filtered);
-    console.log('Lead Time:', leadTime);
-    if (logging) {
-      console.log('Lead Time Log:', lt.getLog().join('\n'));
-    }
+    // const prs = new PullRequestsAdapter(octokit, owner, repositories);
+    // const commits = new CommitsAdapter(octokit);
+    // const pulls = (await prs.GetAllPRs()) || [];
+    // const lt = new LeadTime(pulls, releaseList, commits);
+    // const leadTime = await lt.getLeadTime(filtered);
+    // console.log('Lead Time:', leadTime);
+    // if (logging) {
+    //   //console.log('Lead Time Log:', lt.getLog().join('\n'));
+    // }
 
     const issueAdapter = new IssuesAdapter(octokit, owner, repositories);
     const issueList = (await issueAdapter.GetAllIssues()) || [];

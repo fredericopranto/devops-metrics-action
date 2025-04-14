@@ -46,38 +46,44 @@ export class MeanTimeToRestore {
   }
 
   private getStartAndEndTimesForBugs(bugs: Issue[]): BugTime[] {
-    const values: BugTime[] = []
+    const values: BugTime[] = [];
     for (const bug of bugs) {
-      const createdAt = +new Date(bug.created_at)
-      const closedAt = +new Date(bug.closed_at as string)
-      const repoName = bug.repository_url.split('/').reverse()[0]
-      if (
-        bug.closed_at != null &&
-        this.hasLaterRelease(closedAt, repoName) &&
-        this.hasPreviousRelease(createdAt, repoName)
-      ) {
-        values.push({
-          start: createdAt,
-          end: closedAt,
-          repo: repoName
-        })
+      const createdAt = +new Date(bug.created_at);
+      const closedAt = +new Date(bug.closed_at as string);
+      const repoName = bug.repository_url.split('/').reverse()[0];
+      //console.log(`Processing bug: ${bug.repository_url}`);
+      if (!bug.closed_at) {
+        //console.log(`Bug ignored (no closed_at): ${bug.repository_url}`);
+        continue;
       }
+      if (!this.hasLaterRelease(closedAt, repoName)) {
+        //console.log(`Bug ignored (no later release): ${bug.repository_url}`);
+        continue;
+      }
+      if (!this.hasPreviousRelease(createdAt, repoName)) {
+        //console.log(`Bug ignored (no previous release): ${bug.repository_url}`);
+        continue;
+      }
+      values.push({
+        start: createdAt,
+        end: closedAt,
+        repo: repoName,
+      });
     }
-    return values
+    console.log(`Valid bugs for MTTR calculation: ${values.length}`);
+    return values;
   }
 
   private getIssuesTaggedAsBug(): Issue[] {
-    const bugs: Issue[] = []
+    const bugs: Issue[] = [];
     for (const issue of this.issues) {
-      const createdAt = +new Date(issue.created_at)
-      if (
-        issue.labels.filter(label => label.name === 'bug').length > 0 &&
-        createdAt > this.today.getTime() - 30 * ONE_DAY
-      ) {
-        bugs.push(issue)
+      if (issue.labels.filter(label => label.name === 'bug').length > 0) {
+        bugs.push(issue);
       }
     }
-    return bugs
+    console.log(`Total issues: ${this.issues.length}`);
+    console.log(`Filtered bugs: ${bugs.length}`);
+    return bugs;
   }
 
   hasPreviousRelease(date: number, repo: string): boolean {
@@ -127,18 +133,23 @@ export class MeanTimeToRestore {
 
   mttr(): number {
     const ttr: number[] = this.getBugCount().map(bug => {
-      return this.getRestoreTime(bug)
-    }, this)
+      //console.log(`Calculating TTR for bug: ${bug.repo}`);
+      return this.getRestoreTime(bug);
+    });
 
+    //console.log(`Total TTR values: ${ttr.length}`);
     if (ttr.length === 0) {
-      return 0
+      //console.log('No valid TTR values. MTTR is 0.');
+      return 0;
     }
 
-    let sum = 0
+    let sum = 0;
     for (const ttrElement of ttr) {
-      sum += ttrElement
+      sum += ttrElement;
     }
 
-    return Math.round((sum / ttr.length / ONE_DAY) * 100) / 100 // Two decimals
+    const mttr = Math.round((sum / ttr.length / ONE_DAY) * 100) / 100;
+    console.log(`Mean Time to Restore: ${mttr} days`);
+    return mttr;
   }
 }
