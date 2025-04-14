@@ -6,51 +6,41 @@ import type { IReleaseAdapter } from './interfaces/IReleaseAdapter.js';
 export class ReleaseAdapter implements IReleaseAdapter {
   octokit: Octokit;
   owner: string;
-  repositories: string[];
+  repo: string;
   today: Date;
 
-  constructor(octokit: Octokit, owner: string, repositories: string[]) {
+  constructor(octokit: Octokit, owner: string, repo: string) {
     this.octokit = octokit;
     this.owner = owner;
-    this.repositories = repositories;
+    this.repo = repo;
     this.today = new Date();
   }
 
-  async GetAllReleases(since?: Date): Promise<Release[] | undefined> {
-    // console.log(
-    //   `Fetching releases ${
-    //     since ? `since: ${since.toISOString()}` : 'for all time'
-    //   }`
-    // );
+  async GetAllReleases(since?: Date): Promise<Release[]> {
     try {
-      let result: Release[] | undefined = [];
-      for (const repo of this.repositories) {
-        //console.log(`Fetching releases for repository: ${repo}`);
-        let nextPage = await this.getReleases(repo, since, 1);
-        //console.log(`Fetched ${nextPage.length} releases from page 1`);
+      let result: Release[] = [];
+      let page = 1;
+      let nextPage: Release[] = [];
+
+      do {
+        nextPage = await this.getReleases(since, page);
         result = result.concat(nextPage);
-        for (let page = 2; page < 100 && nextPage.length === 100; page++) {
-          nextPage = await this.getReleases(repo, since, page);
-          //console.log(`Fetched ${nextPage.length} releases from page ${page}`);
-          result = result.concat(nextPage);
-        }
-      }
-      //console.log(`Total releases fetched: ${result.length}`);
+        page++;
+      } while (nextPage.length === 100); // Continua enquanto houver 100 releases por página
+
+      console.log(`Total releases fetched for repository "${this.repo}": ${result.length}`);
       return result;
     } catch (e: any) {
-      console.error(`Error fetching releases: ${e.message}`);
+      console.error(`Error fetching releases for repository "${this.repo}": ${e.message}`);
       core.setFailed(e.message);
+      return [];
     }
   }
 
-  private async getReleases(
-    repo: string,
-    since: Date | undefined,
-    page: number
-  ): Promise<Release[]> {
+  private async getReleases(since: Date | undefined, page: number): Promise<Release[]> {
     const params: any = {
       owner: this.owner,
-      repo,
+      repo: this.repo,
       headers: {
         'X-GitHub-Api-Version': '2022-11-28',
       },
@@ -66,6 +56,8 @@ export class ReleaseAdapter implements IReleaseAdapter {
       'GET /repos/{owner}/{repo}/releases',
       params
     );
-    return Promise.resolve(result.data) as Promise<Release[]>;
+
+    console.log(`Fetched ${result.data.length} releases from page ${page} for repository "${this.repo}"`);
+    return result.data as Release[];
   }
 }

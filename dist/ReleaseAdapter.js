@@ -2,45 +2,37 @@ import * as core from '@actions/core';
 export class ReleaseAdapter {
     octokit;
     owner;
-    repositories;
+    repo;
     today;
-    constructor(octokit, owner, repositories) {
+    constructor(octokit, owner, repo) {
         this.octokit = octokit;
         this.owner = owner;
-        this.repositories = repositories;
+        this.repo = repo;
         this.today = new Date();
     }
     async GetAllReleases(since) {
-        // console.log(
-        //   `Fetching releases ${
-        //     since ? `since: ${since.toISOString()}` : 'for all time'
-        //   }`
-        // );
         try {
             let result = [];
-            for (const repo of this.repositories) {
-                //console.log(`Fetching releases for repository: ${repo}`);
-                let nextPage = await this.getReleases(repo, since, 1);
-                //console.log(`Fetched ${nextPage.length} releases from page 1`);
+            let page = 1;
+            let nextPage = [];
+            do {
+                nextPage = await this.getReleases(since, page);
                 result = result.concat(nextPage);
-                for (let page = 2; page < 100 && nextPage.length === 100; page++) {
-                    nextPage = await this.getReleases(repo, since, page);
-                    //console.log(`Fetched ${nextPage.length} releases from page ${page}`);
-                    result = result.concat(nextPage);
-                }
-            }
-            //console.log(`Total releases fetched: ${result.length}`);
+                page++;
+            } while (nextPage.length === 100); // Continua enquanto houver 100 releases por página
+            console.log(`Total releases fetched for repository "${this.repo}": ${result.length}`);
             return result;
         }
         catch (e) {
-            console.error(`Error fetching releases: ${e.message}`);
+            console.error(`Error fetching releases for repository "${this.repo}": ${e.message}`);
             core.setFailed(e.message);
+            return [];
         }
     }
-    async getReleases(repo, since, page) {
+    async getReleases(since, page) {
         const params = {
             owner: this.owner,
-            repo,
+            repo: this.repo,
             headers: {
                 'X-GitHub-Api-Version': '2022-11-28',
             },
@@ -51,7 +43,8 @@ export class ReleaseAdapter {
             params.since = since.toISOString();
         }
         const result = await this.octokit.request('GET /repos/{owner}/{repo}/releases', params);
-        return Promise.resolve(result.data);
+        console.log(`Fetched ${result.data.length} releases from page ${page} for repository "${this.repo}"`);
+        return result.data;
     }
 }
 //# sourceMappingURL=ReleaseAdapter.js.map

@@ -38,35 +38,41 @@ export async function run(): Promise<void> {
       request: { fetch },
     });
 
-    // Passar a instância do Octokit para o ReleaseAdapter
-    const rel = new ReleaseAdapter(octokit, owner, repositories);
-    const releaseList = (await rel.GetAllReleases()) || [];
-    const df = new DeployFrequency(releaseList);
-    console.log('Deployment Frequency:', df.rate());
-    if (logging) {
-      //console.log('Deployment Frequency Log:', df.getLog().join('\n'));
-    }
+    for (const repository of repositories) {
+      console.log(`Processando repositório: ${repository}`);
 
-    const prs = new PullRequestsAdapter(octokit, owner, repositories);
-    const commits = new CommitsAdapter(octokit);
-    const pulls = (await prs.GetAllPRs()) || [];
-    const lt = new LeadTime(pulls, releaseList, commits);
-    const leadTime = await lt.getLeadTime(filtered);
-    console.log('Lead Time:', leadTime);
-    if (logging) {
-       //console.log('Lead Time Log:', lt.getLog().join('\n'));
-    }
+      // Deployment Frequency (ajustado para receber um único repositório)
+      const rel = new ReleaseAdapter(octokit, owner, repository);
+      const releaseList = (await rel.GetAllReleases()) || [];
+      const df = new DeployFrequency(releaseList);
+      console.log(`Deployment Frequency (${repository}):`, df.rate());
+      if (logging) {
+        //console.log('Deployment Frequency Log:', df.getLog().join('\n'));
+      }
 
-    const issueAdapter = new IssuesAdapter(octokit, owner, repositories);
-    const issueList = (await issueAdapter.GetAllIssues()) || [];
-    if (issueList.length > 0) {
-      const cfr = new ChangeFailureRate(issueList, releaseList);
-      console.log('Change Failure Rate:', cfr.Cfr());
-      const mttr = new MeanTimeToRestore(issueList, releaseList);
-      console.log('Mean Time to Restore:', mttr.mttr());
-    } else {
-      console.log('Change Failure Rate: empty issue list');
-      console.log('Mean Time to Restore: empty issue list');
+      // Pull Requests e Commits (mantém a lógica atual com lista)
+      const prs = new PullRequestsAdapter(octokit, owner, repositories);
+      const commits = new CommitsAdapter(octokit);
+      const pulls = (await prs.GetAllPRs()) || [];
+      const lt = new LeadTime(pulls, releaseList, commits);
+      const leadTime = await lt.getLeadTime(filtered);
+      console.log(`Lead Time (${repository}):`, leadTime);
+      if (logging) {
+        //console.log('Lead Time Log:', lt.getLog().join('\n'));
+      }
+
+      // Issues (mantém a lógica atual com lista)
+      const issueAdapter = new IssuesAdapter(octokit, owner, repositories);
+      const issueList = (await issueAdapter.GetAllIssues()) || [];
+      if (issueList.length > 0) {
+        const cfr = new ChangeFailureRate(issueList, releaseList);
+        console.log(`Change Failure Rate (${repository}):`, cfr.Cfr());
+        const mttr = new MeanTimeToRestore(issueList, releaseList);
+        console.log(`Mean Time to Restore (${repository}):`, mttr.mttr());
+      } else {
+        console.log(`Change Failure Rate (${repository}): empty issue list`);
+        console.log(`Mean Time to Restore (${repository}): empty issue list`);
+      }
     }
   } catch (error: any) {
     console.error('Erro ao executar o projeto:', error.message);
