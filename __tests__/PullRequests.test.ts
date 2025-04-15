@@ -1,16 +1,23 @@
 import type {PullRequest} from '../src/types/PullRequest'
 import {PullRequestsAdapter} from '../src/PullRequestsAdapter'
 import fs from 'node:fs'
-import type {Octokit} from '@octokit/core'
+import {Octokit} from '@octokit/rest'
+
+const token = process.env.GITHUB_TOKEN
+  if (!token) {
+    throw new Error(
+      'GitHub token (GITHUB_TOKEN) is not defined in the environment variables.'
+    )
+  }
+
+// Create an Octokit instance using the token
+const octokit = new Octokit({ auth: token })
 
 test('PullRequestsAdapter should', async () => {
-  const pullRequests = new PullRequestsAdapter(process.env.GH_TOKEN, 'stenjo', [
-    'dora'
-  ])
+  const pullRequests = new PullRequestsAdapter(octokit, 'fredericopranto', 'mock'
+  )
   pullRequests.getPRs = jest.fn(
     async (
-      octokit: Octokit,
-      repo: string,
       since: Date,
       page: number
     ): Promise<PullRequest[]> => {
@@ -23,7 +30,7 @@ test('PullRequestsAdapter should', async () => {
       )
     }
   )
-  const pr = (await pullRequests.GetAllPRsLastMonth()) as PullRequest[]
+  const pr = (await pullRequests.GetAllPRs()) as PullRequest[]
 
   expect(pr.length).toBeGreaterThan(-1)
   expect(pr.length).toBe(2)

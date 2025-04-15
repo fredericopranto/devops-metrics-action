@@ -3,6 +3,7 @@ import {setupServer} from 'msw/node'
 import {setFailed} from '@actions/core'
 import {IssuesAdapter} from '../src/IssuesAdapter'
 import {Issue} from '../src/types/Issue'
+import { Octokit } from '@octokit/rest'
 
 const server = setupServer(
   http.get(
@@ -23,6 +24,16 @@ jest.mock('@actions/core', () => ({
   setFailed: jest.fn()
 }))
 
+const token = process.env.GITHUB_TOKEN
+  if (!token) {
+    throw new Error(
+      'GitHub token (GITHUB_TOKEN) is not defined in the environment variables.'
+    )
+  }
+
+  // Create an Octokit instance using the token
+  const octokit = new Octokit({ auth: token })
+
 describe('Issue Adapter should', () => {
   beforeEach(() => {
     server.listen()
@@ -36,9 +47,9 @@ describe('Issue Adapter should', () => {
   })
 
   it('return paged values', async () => {
-    const r = new IssuesAdapter(undefined, 'test-owner', ['project1'])
+    const r = new IssuesAdapter(octokit, 'fredericopranto', 'mock')
 
-    const issues: Issue[] = (await r.GetAllIssuesLastMonth()) as Issue[]
+    const issues: Issue[] = (await r.GetAllIssues()) as Issue[]
 
     expect(issues.length).toBe(150)
   })
@@ -55,8 +66,8 @@ describe('Issue Adapter should', () => {
       )
     )
     errorServer.listen()
-    const r = new IssuesAdapter(undefined, 'test-owner', ['project1'])
-    const result = await r.GetAllIssuesLastMonth()
+    const r = new IssuesAdapter(octokit, 'fredericopranto', 'mock')
+    const result = await r.GetAllIssues()
     expect(result).toBe(undefined)
     expect(setFailed).toHaveBeenCalledWith('access denied')
     errorServer.close()

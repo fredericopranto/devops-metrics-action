@@ -12,7 +12,7 @@ test('fetches commits', async () => {
     CommitsAdapter.prototype as any,
     'getCommits'
   )
-  getCommitsMock.mockImplementation(async (): Promise<Commit[] | undefined> => {
+  getCommitsMock.mockImplementation(async (): Promise<Commit[]> => {
     return Promise.resolve(
       JSON.parse(
         fs.readFileSync('./__tests__/test-data/commits.json').toString()

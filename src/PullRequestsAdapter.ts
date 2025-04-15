@@ -40,7 +40,7 @@ export class PullRequestsAdapter implements IPullRequestsAdapter {
     }
   }
 
-  private async getPRs(since: Date | undefined, page: number): Promise<PullRequest[]> {
+  async getPRs(since: Date | undefined, page: number): Promise<PullRequest[]> {
     const params: any = {
       owner: this.owner,
       repo: this.repo,

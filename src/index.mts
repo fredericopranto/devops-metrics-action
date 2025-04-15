@@ -49,7 +49,6 @@ export async function run(): Promise<void> {
       console.log(`Deployment Frequency:`, df.rate());
 
       // Lead Time
-      
       const prs = new PullRequestsAdapter(octokit, owner, repo); 
       const commits = new CommitsAdapter(octokit);
       const pulls = (await prs.GetAllPRs()) || [];

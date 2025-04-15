@@ -1,13 +1,24 @@
+import { Octokit } from '@octokit/rest'
 import {ReleaseAdapter} from '../src/ReleaseAdapter'
 import type {Release} from '../src/types/Release'
 import fs from 'node:fs'
 
+const token = process.env.GITHUB_TOKEN
+  if (!token) {
+    throw new Error(
+      'GitHub token (GITHUB_TOKEN) is not defined in the environment variables.'
+    )
+  }
+
+// Create an Octokit instance using the token
+const octokit = new Octokit({ auth: token })
+
 describe('Mocked Release API should', () => {
   it('return releases', async () => {
-    const r = new ReleaseAdapter(undefined, 'testowner', ['project1'])
+    const r = new ReleaseAdapter(octokit, 'fredericopranto', 'mock')
     mockedGetReleasesReturns('./__tests__/test-data/releases.json')
 
-    const releases: Release[] = (await r.GetAllReleasesLastMonth()) as Release[]
+    const releases: Release[] = (await r.GetAllReleases()) as Release[]
 
     expect(releases.length).toBeGreaterThan(0)
     expect(releases[0].author.type).toBe('Bot')

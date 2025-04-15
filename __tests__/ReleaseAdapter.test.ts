@@ -4,6 +4,7 @@ import {setFailed} from '@actions/core'
 import {ReleaseAdapter} from '../src/ReleaseAdapter'
 import type {Release} from '../src/types/Release'
 import type {Person} from '../src/types/Person'
+import { Octokit } from '@octokit/rest'
 
 const server = setupServer(
   http.get(
@@ -36,7 +37,7 @@ const server = setupServer(
         releases.push({
           id: i,
           url: '',
-          uploadUrl: '',
+          upload_url: '',
           author,
           node_id: '',
           tag_name: '',
@@ -60,6 +61,16 @@ jest.mock('@actions/core', () => ({
   setFailed: jest.fn()
 }))
 
+const token = process.env.GITHUB_TOKEN
+  if (!token) {
+    throw new Error(
+      'GitHub token (GITHUB_TOKEN) is not defined in the environment variables.'
+    )
+  }
+
+// Create an Octokit instance using the token
+const octokit = new Octokit({ auth: token })
+
 describe('Release Adapter should', () => {
   beforeEach(() => {
     server.listen()
@@ -73,9 +84,9 @@ describe('Release Adapter should', () => {
   })
 
   it('return paged values', async () => {
-    const r = new ReleaseAdapter(undefined, 'test-owner', ['project1'])
+    const r = new ReleaseAdapter(octokit, 'fredericopranto', 'mock')
 
-    const releases: Release[] = (await r.GetAllReleasesLastMonth()) as Release[]
+    const releases: Release[] = (await r.GetAllReleases()) as Release[]
 
     expect(releases.length).toBe(150)
   })
@@ -92,8 +103,8 @@ describe('Release Adapter should', () => {
       )
     )
     errorServer.listen()
-    const r = new ReleaseAdapter(undefined, 'test-owner', ['project1'])
-    const result = await r.GetAllReleasesLastMonth()
+    const r = new ReleaseAdapter(octokit, 'fredericopranto', 'mock')
+    const result = await r.GetAllReleases()
 
     expect(result).toBe(undefined)
     expect(setFailed).toHaveBeenCalledWith('access denied')

@@ -3,6 +3,7 @@ import {setupServer} from 'msw/node'
 import {setFailed} from '@actions/core'
 import {PullRequestsAdapter} from '../src/PullRequestsAdapter'
 import type {PullRequest} from '../src/types/PullRequest'
+import { Octokit } from '@octokit/rest'
 
 const server = setupServer(
   http.get(
@@ -23,6 +24,16 @@ jest.mock('@actions/core', () => ({
   setFailed: jest.fn()
 }))
 
+const token = process.env.GITHUB_TOKEN
+  if (!token) {
+    throw new Error(
+      'GitHub token (GITHUB_TOKEN) is not defined in the environment variables.'
+    )
+  }
+
+// Create an Octokit instance using the token
+const octokit = new Octokit({ auth: token })
+
 describe('PullRequest Adapter should', () => {
   beforeEach(() => {
     server.listen()
@@ -36,10 +47,10 @@ describe('PullRequest Adapter should', () => {
   })
 
   it('return paged values', async () => {
-    const r = new PullRequestsAdapter(undefined, 'test-owner', ['project1'])
+    const r = new PullRequestsAdapter(octokit, 'fredericopranto', 'mock')
 
     const pullRequests: PullRequest[] =
-      (await r.GetAllPRsLastMonth()) as PullRequest[]
+      (await r.GetAllPRs()) as PullRequest[]
 
     expect(pullRequests.length).toBe(150)
   })
@@ -56,8 +67,8 @@ describe('PullRequest Adapter should', () => {
       )
     )
     errorServer.listen()
-    const r = new PullRequestsAdapter(undefined, 'test-owner', ['project1'])
-    const result = await r.GetAllPRsLastMonth()
+    const r = new PullRequestsAdapter(octokit, 'fredericopranto', 'mock')
+    const result = await r.GetAllPRs()
     expect(result).toBe(undefined)
     expect(setFailed).toHaveBeenCalledWith('access denied')
     errorServer.close()
