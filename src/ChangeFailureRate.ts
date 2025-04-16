@@ -33,20 +33,6 @@ export class ChangeFailureRate {
 
     let failedDeploys = 0;
 
-    // Caso especial: Apenas uma release
-    if (releaseDates.length === 1) {
-      const bugsAfterRelease = bugs.filter(bug => {
-        const bugDate = +new Date(bug.created_at);
-        return bugDate > releaseDates[0].published;
-      });
-
-      if (bugsAfterRelease.length > 0) {
-        failedDeploys = 1; // Todas as falhas são atribuídas à única release
-      }
-
-      return Math.round((failedDeploys / releaseDates.length) * 100);
-    }
-
     // Verificar bugs entre releases consecutivas
     for (let i = 0; i < releaseDates.length - 1; i++) {
       const bugsInRange = bugs.filter(bug => {
@@ -60,6 +46,16 @@ export class ChangeFailureRate {
       if (bugsInRange.length > 0) {
         failedDeploys += 1;
       }
+    }
+
+    // Verificar bugs após a última release
+    const bugsAfterLastRelease = bugs.filter(bug => {
+      const bugDate = +new Date(bug.created_at);
+      return bugDate > releaseDates[releaseDates.length - 1].published;
+    });
+
+    if (bugsAfterLastRelease.length > 0) {
+      failedDeploys += 1; // Contabiliza falhas após a última release
     }
 
     return Math.round((failedDeploys / releaseDates.length) * 100);
