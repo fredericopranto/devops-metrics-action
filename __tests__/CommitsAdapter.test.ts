@@ -4,6 +4,7 @@ import {setFailed} from '@actions/core'
 import {CommitsAdapter} from '../src/CommitsAdapter'
 import fs from 'fs'
 import {Commit} from '../src/types/Commit'
+import { Octokit } from '@octokit/rest'
 
 const commitsUrl =
   'https://api.github.com/repos/stenjo/devops-metrics-action/pulls/69/commits'
@@ -19,6 +20,17 @@ const server = setupServer(
     }
   )
 )
+
+const token = process.env.GITHUB_TOKEN
+  if (!token) {
+    throw new Error(
+      'GitHub token (GITHUB_TOKEN) is not defined in the environment variables.'
+    )
+  }
+
+// Create an Octokit instance using the token
+const octokit = new Octokit({ auth: token })
+
 jest.mock('@actions/core', () => ({
   setFailed: jest.fn()
 }))
@@ -36,7 +48,7 @@ describe('Commit Adapter should', () => {
   })
 
   it('return unpaged values', async () => {
-    const r = new CommitsAdapter(undefined)
+    const r = new CommitsAdapter(octokit)
 
     const releases: Commit[] = (await r.getCommitsFromUrl(
       commitsUrl
@@ -57,7 +69,7 @@ describe('Commit Adapter should', () => {
       )
     )
     errorServer.listen()
-    const r = new CommitsAdapter(commitsUrl)
+    const r = new CommitsAdapter(octokit)
     const result = await r.getCommitsFromUrl(commitsUrl)
     expect(result).toBe(undefined)
     expect(setFailed).toHaveBeenCalledWith('Bad credentials')
