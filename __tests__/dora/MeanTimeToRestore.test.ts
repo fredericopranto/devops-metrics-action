@@ -1,15 +1,15 @@
-import type {Issue} from '../src/types/Issue'
-import type {Release} from '../src/types/Release'
+import type {Issue} from '../../src/types/Issue'
+import type {Release} from '../../src/types/Release'
 import fs from 'node:fs'
 import {
   type BugTime,
   type ReleaseDate,
   MeanTimeToRestore
-} from '../src/MeanTimeToRestore'
+} from '../../src/MeanTimeToRestore'
 
 describe('MeanTimeToRestore should', () => {
   const issues: Issue[] = JSON.parse(
-    fs.readFileSync('./__tests__/test-data/issue-list.json').toString()
+    fs.readFileSync('./__tests__/test-data/issues.json').toString()
   )
   const releases: Release[] = JSON.parse(
     fs.readFileSync('./__tests__/test-data/releases.json').toString()

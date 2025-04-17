@@ -1,9 +1,9 @@
 import {http, HttpResponse} from 'msw'
 import {setupServer} from 'msw/node'
 import {setFailed} from '@actions/core'
-import {ReleaseAdapter} from '../src/ReleaseAdapter'
-import type {Release} from '../src/types/Release'
-import type {Person} from '../src/types/Person'
+import {ReleaseAdapter} from '../../src/ReleaseAdapter'
+import type {Release} from '../../src/types/Release'
+import type {Person} from '../../src/types/Person'
 import { Octokit } from '@octokit/rest'
 
 const server = setupServer(

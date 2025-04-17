@@ -1,18 +1,19 @@
-import {Issue} from '../src/types/Issue'
+import {Issue} from '../../src/types/Issue'
 import fs from 'fs'
-import {ChangeFailureRate} from '../src/ChangeFailureRate'
-import {Release} from '../src/types/Release'
+import {ChangeFailureRate} from '../../src/ChangeFailureRate'
+import {Release} from '../../src/types/Release'
 
 describe('ChangeFailureRate should', () => {
   it('get number of bugs created', () => {
     
     const issues: Issue[] = JSON.parse(
-      fs.readFileSync('./__tests__/test-data/issue-list.json', 'utf8')
+      fs.readFileSync('./__tests__/test-data/issues.json', 'utf8')
     )
 
     const releases: Release[] = JSON.parse(
       fs.readFileSync('./__tests__/test-data/releases.json', 'utf8')
     )
+    
     const cfr = new ChangeFailureRate(
       issues,
       releases,
@@ -25,7 +26,7 @@ describe('ChangeFailureRate should', () => {
 
   it('get percentage rate', () => {
     const bugs: Issue[] = JSON.parse(
-      fs.readFileSync('./__tests__/test-data/issue-list.json', 'utf8')
+      fs.readFileSync('./__tests__/test-data/issues.json', 'utf8')
     )
     const releases: Release[] = JSON.parse(
       fs.readFileSync('./__tests__/test-data/releases.json', 'utf8')
@@ -42,7 +43,7 @@ describe('ChangeFailureRate should', () => {
 
   it('calculate   0 failures on 0 releases', () => {
     const bugs: Issue[] = JSON.parse(
-      fs.readFileSync('./__tests__/test-data/issue-list.json', 'utf8')
+      fs.readFileSync('./__tests__/test-data/issues.json', 'utf8')
     )
     const releases: Release[] = []
 

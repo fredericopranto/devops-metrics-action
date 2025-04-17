@@ -1,7 +1,7 @@
 //
-import {DeployFrequency} from '../src/DeployFrequency'
+import {DeployFrequency} from '../../src/DeployFrequency'
 import fs from 'fs'
-import {Release} from '../src/types/Release'
+import {Release} from '../../src/types/Release'
 
 describe('Deploy frequency should', () => {
   const oneReleaseList: Release[] = JSON.parse(

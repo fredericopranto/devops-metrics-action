@@ -1,9 +1,9 @@
 import {http, HttpResponse} from 'msw'
 import {setupServer} from 'msw/node'
 import {setFailed} from '@actions/core'
-import {CommitsAdapter} from '../src/CommitsAdapter'
+import {CommitsAdapter} from '../../src/CommitsAdapter'
 import fs from 'fs'
-import {Commit} from '../src/types/Commit'
+import {Commit} from '../../src/types/Commit'
 import { Octokit } from '@octokit/rest'
 
 const commitsUrl =

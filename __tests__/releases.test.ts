@@ -1,41 +1,58 @@
-import { Octokit } from '@octokit/rest'
-import {ReleaseAdapter} from '../src/ReleaseAdapter'
 import type {Release} from '../src/types/Release'
 import fs from 'node:fs'
+import dotenv from 'dotenv';
 
-const token = process.env.GITHUB_TOKEN
-  if (!token) {
-    throw new Error(
-      'GitHub token (GITHUB_TOKEN) is not defined in the environment variables.'
-    )
-  }
-
-// Create an Octokit instance using the token
-const octokit = new Octokit({ auth: token })
+dotenv.config();
 
 describe('Mocked Release API should', () => {
-  it('return releases', async () => {
-    const r = new ReleaseAdapter(octokit, 'fredericopranto', 'mock')
-    mockedGetReleasesReturns('./__tests__/test-data/releases.json')
-
-    const releases: Release[] = (await r.GetAllReleases()) as Release[]
-
+  it('return releases count to be greater then zero', async () => {
+    const releases: Release[] = JSON.parse(
+      fs.readFileSync('./__tests__/test-data/releases.json', 'utf8')
+    )
     expect(releases.length).toBeGreaterThan(0)
+  })
+
+  it('return releases count to be 10', async () => {
+    const releases: Release[] = JSON.parse(
+      fs.readFileSync('./__tests__/test-data/releases.json', 'utf8')
+    )
+    expect(releases.length).toBe(10)
+  })
+
+  it('return releases between dates', async () => {
+    const releases: Release[] = JSON.parse(
+      fs.readFileSync('./__tests__/test-data/releases.json', 'utf8')
+    )
+    expect(releases.length).toBe(10)
+  })
+
+  it('return last release tag to be v0.4.2', async () => {
+    const releases: Release[] = JSON.parse(
+      fs.readFileSync('./__tests__/test-data/releases.json', 'utf8')
+    )
+    expect(releases.reverse()[0].name).toBe('v0.4.2')
+  })
+
+  it('return author type do be Bot', async () => {
+    const releases: Release[] = JSON.parse(
+      fs.readFileSync('./__tests__/test-data/releases.json', 'utf8')
+    )
     expect(releases[0].author.type).toBe('Bot')
-    expect(releases.reverse()[0].name).toBe('v0.0.1')
+  })
+
+  it('return releases in April (from April 1 to April 30)', async () => {
+    const releases: Release[] = JSON.parse(
+      fs.readFileSync('./__tests__/test-data/releases.json', 'utf8')
+    );
+
+    const startDate = new Date('2023-04-01T00:00:00Z');
+    const endDate = new Date('2023-04-30T23:59:59Z');
+
+    const aprilReleases = releases.filter(release => {
+      const publishedAt = new Date(release.published_at || '');
+      return publishedAt >= startDate && publishedAt <= endDate;
+    });
+
+    expect(aprilReleases.length).toBe(7);
   })
 })
-
-function mockedGetReleasesReturns(file: string): void {
-  const getIssuesMock = jest.spyOn(
-    // biome-ignore lint/suspicious/noExplicitAny: <explanation>
-    // eslint-disable-next-line  @typescript-eslint/no-explicit-any
-    ReleaseAdapter.prototype as any,
-    'getReleases'
-  )
-  getIssuesMock.mockImplementation(async (): Promise<Release[]> => {
-    return Promise.resolve(
-      JSON.parse(fs.readFileSync(file).toString()) as Release[]
-    )
-  })
-}

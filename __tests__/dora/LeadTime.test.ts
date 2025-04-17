@@ -1,8 +1,8 @@
-import {CommitsAdapter} from '../src/CommitsAdapter'
-import type {Commit} from '../src/types/Commit'
-import type {PullRequest} from '../src/types/PullRequest'
-import type {Release} from '../src/types/Release'
-import {LeadTime} from '../src/LeadTime'
+import {CommitsAdapter} from '../../src/CommitsAdapter'
+import type {Commit} from '../../src/types/Commit'
+import type {PullRequest} from '../../src/types/PullRequest'
+import type {Release} from '../../src/types/Release'
+import {LeadTime} from '../../src/LeadTime'
 import {expect, jest} from '@jest/globals'
 import { Octokit } from '@octokit/rest'
 

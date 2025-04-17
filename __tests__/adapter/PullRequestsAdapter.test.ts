@@ -1,8 +1,8 @@
 import {http, HttpResponse} from 'msw'
 import {setupServer} from 'msw/node'
 import {setFailed} from '@actions/core'
-import {PullRequestsAdapter} from '../src/PullRequestsAdapter'
-import type {PullRequest} from '../src/types/PullRequest'
+import {PullRequestsAdapter} from '../../src/PullRequestsAdapter'
+import type {PullRequest} from '../../src/types/PullRequest'
 import { Octokit } from '@octokit/rest'
 
 const server = setupServer(

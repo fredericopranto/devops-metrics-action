@@ -1,8 +1,8 @@
 import {http, HttpResponse} from 'msw'
 import {setupServer} from 'msw/node'
 import {setFailed} from '@actions/core'
-import {IssuesAdapter} from '../src/IssuesAdapter'
-import {Issue} from '../src/types/Issue'
+import {IssuesAdapter} from '../../src/IssuesAdapter'
+import {Issue} from '../../src/types/Issue'
 import { Octokit } from '@octokit/rest'
 
 const server = setupServer(

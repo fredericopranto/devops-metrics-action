@@ -29,7 +29,7 @@ describe('Real Issues API should', () => {
 describe('mocked Issues API should', () => {
   test('return issues', async () => {
     const issueAdapter = new IssuesAdapter(octokit, 'fredericopranto', 'mock')
-    mockedGetIssuesReturns('./__tests__/test-data/issue-list.json')
+    mockedGetIssuesReturns('./__tests__/test-data/issues.json')
 
     const il = await issueAdapter.GetAllIssues()
     expect(il?.length).toBe(30)
