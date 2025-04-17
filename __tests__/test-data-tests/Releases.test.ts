@@ -1,4 +1,4 @@
-import type {Release} from '../src/types/Release'
+import type {Release} from '../../src/types/Release'
 import fs from 'node:fs'
 import dotenv from 'dotenv';
 

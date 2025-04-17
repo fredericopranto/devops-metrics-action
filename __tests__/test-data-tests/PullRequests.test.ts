@@ -1,5 +1,5 @@
-import type {PullRequest} from '../src/types/PullRequest'
-import {PullRequestsAdapter} from '../src/PullRequestsAdapter'
+import type {PullRequest} from '../../src/types/PullRequest'
+import {PullRequestsAdapter} from '../../src/PullRequestsAdapter'
 import fs from 'node:fs'
 import {Octokit} from '@octokit/rest'
 

@@ -1,5 +1,5 @@
-import {CommitsAdapter} from '../src/CommitsAdapter'
-import type {Commit} from '../src/types/Commit'
+import {CommitsAdapter} from '../../src/CommitsAdapter'
+import type {Commit} from '../../src/types/Commit'
 import fs from 'node:fs'
 import * as dotenv from 'dotenv'
 import { Octokit } from '@octokit/rest'

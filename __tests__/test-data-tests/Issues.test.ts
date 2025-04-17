@@ -1,7 +1,7 @@
 import fs from 'node:fs'
 import { Octokit } from '@octokit/rest'
-import { IssuesAdapter } from '../src/IssuesAdapter'
-import type { Issue } from '../src/types/Issue'
+import { IssuesAdapter } from '../../src/IssuesAdapter'
+import type { Issue } from '../../src/types/Issue'
 import * as dotenv from 'dotenv'
 
 dotenv.config()
