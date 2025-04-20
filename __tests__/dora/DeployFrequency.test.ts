@@ -1,4 +1,3 @@
-//
 import {DeployFrequency} from '../../src/DeployFrequency'
 import fs from 'fs'
 import {Release} from '../../src/types/Release'
@@ -10,105 +9,35 @@ describe('Deploy frequency should', () => {
   const releaseList: Release[] = JSON.parse(
     fs.readFileSync('./__tests__/test-data/releases.json', 'utf-8')
   )
-  it('calculate releases pr week for release less than 1 week', () => {
-    const df = new DeployFrequency(oneReleaseList, '2023-04-14T22:33:11Z')
+
+  it('calculate df of 1 release', () => {
+    const df = new DeployFrequency([releaseList[0]], new Date(2022, 0, 1), new Date(2022, 11, 31));
     const wr = df.rate()
 
-    expect(wr).toBe(1)
+    expect(wr).toBe(null);
   })
-  it('calculate releases pr week for release more than 1 week ago', () => {
-    const df = new DeployFrequency(oneReleaseList, '2023-04-24T22:33:11Z')
+  it('calculate df of 2 release in 12 month', () => {
+    const df = new DeployFrequency([releaseList[0], releaseList[1]], new Date(2022, 0, 1), new Date(2022, 11, 31));
     const wr = df.rate()
 
-    expect(wr).toBe(1)
+    expect(wr).toBe(182.5);
   })
-  it('calculate releases pr week for release this week based on large list', () => {
-    const df = new DeployFrequency(releaseList, '2023-05-01T22:33:11Z')
+  it('calculate df of 2 release in 1 month', () => {
+    const df = new DeployFrequency([releaseList[0], releaseList[1]], new Date(2022, 0, 1), new Date(2022, 0, 31));
     const wr = df.rate()
 
-    expect(wr).toBe(5)
+    expect(wr).toBe(15.5);
   })
-  it('monthly calculate releases pr week for release more than 1 week ago', () => {
-    const df = new DeployFrequency(oneReleaseList, '2023-04-24T22:33:11Z')
-    const mr = df.rate()
+  it('calculate df of 10 daily releases in 10 days', () => {
+    const df = new DeployFrequency(releaseList, new Date(2022, 0, 1), new Date(2022, 0, 10));
+    const wr = df.rate()
 
-    expect(mr).toBe(2)
+    expect(wr).toBe(1);
   })
-  it('calculate release rate last month', () => {
-    const df = new DeployFrequency(oneReleaseList, '2023-04-14T22:33:11Z')
-    const rr = df.rate()
+  it('calculate df of 5 release in 1 day', () => {
+    const df = new DeployFrequency(releaseList, new Date(2022, 0, 11), new Date(2022, 0, 11));
+    const wr = df.rate()
 
-    expect(rr).toBe('0.47')
-  })
-  it('calculate release rate last month based on 7 releases list', () => {
-    const df = new DeployFrequency(releaseList, '2023-05-14T22:33:11Z')
-    const rr = df.rate()
-
-    expect(rr).toBe('1.40')
-  })
-  it('calculate release rate next month', () => {
-    const df = new DeployFrequency(oneReleaseList, '2023-05-23T22:33:11Z')
-    const rr = df.rate()
-
-    expect(rr).toBe('0.00')
-  })
-  it('throw exception when no releases', () => {
-    const emptyReleaseList: Release[] = []
-
-    const t = (): void => {
-      new DeployFrequency(emptyReleaseList)
-    }
-
-    expect(t).toThrow('Empty release list')
-  })
-  it('throw exception when release list is null', () => {
-    const emptyReleaseList: Release[] | null = null
-
-    const t = (): void => {
-      new DeployFrequency(emptyReleaseList)
-    }
-
-    expect(t).toThrow('Empty release list')
-  })
-  it('get an empty log of releases', () => {
-    const df = new DeployFrequency(releaseList, '2023-05-14T22:33:11Z')
-
-    expect(df.getLog().length).toBe(0)
-  })
-
-  it('get release log list weekly when rate calculated', () => {
-    const df = new DeployFrequency(releaseList, '2023-05-01T22:33:11Z')
-
-    df.rate()
-
-    expect(
-      df.getLog().map(l => {
-        return l.includes('release')
-      }).length
-    ).toBe(5)
-  })
-
-  it('get release log list monthly when rate calculated', () => {
-    const df = new DeployFrequency(releaseList, '2023-05-14T22:33:11Z')
-
-    df.rate()
-
-    expect(
-      df.getLog().map(l => {
-        return l.includes('release')
-      }).length
-    ).toBe(6)
-  })
-
-  it('get release log list when rate calculated', () => {
-    const df = new DeployFrequency(releaseList, '2023-05-14T22:33:11Z')
-
-    df.rate()
-
-    expect(
-      df.getLog().map(l => {
-        return l.includes('release')
-      }).length
-    ).toBe(6)
+    expect(wr).toBe(0.2);
   })
 })

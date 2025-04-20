@@ -1,95 +1,62 @@
-//
-
 import { Release } from './types/Release.js';
 
-// O número de milissegundos em um dia
 const ONE_DAY = 1000 * 60 * 60 * 24;
 
 export class DeployFrequency {
-  log: string[] = [];
-  today: Date = new Date();
   rList: Release[] = new Array<Release>();
+  startDate: Date;
+  endDate: Date;
 
-  constructor(releases: Release[] | null, dateString: string | null = null) {
+  constructor(releases: Release[] | null, startDate: Date | undefined, endDate: Date | undefined) {
     this.rList = releases as Release[];
+    this.startDate = startDate ?? (this.rList.length > 0 ? new Date(this.rList[0].published_at) : new Date(0));
+    this.endDate = endDate ?? new Date();
+
     if (this.rList === null || this.rList.length === 0) {
-      throw new Error('Empty release list');
+      console.log('Empty release list');
     }
-
-    if (dateString !== null) {
-      this.today = new Date(dateString);
+    if (this.startDate > this.endDate) {
+      console.log('Start date must be before end date');
     }
   }
 
-  getLog(): string[] {
-    return this.log;
-  }
+  rate(): number | null {
+    if (this.rList.length < 2) {
+      return null;
+    }
 
-  weekly(): number {
-    let releaseCount = 0;
-    for (const release of this.rList) {
+      const totalReleases = this.rList.filter(release => {
       const relDate = new Date(release.published_at);
-      if (this.days_between(this.today, relDate) < 8) {
-        this.log.push(`release->  ${release.name}:${release.published_at}`);
-        releaseCount++;
+
+      if (!this.startDate || !this.endDate) {
+        return true;
       }
-    }
 
-    return releaseCount;
+      const relDateWithoutTime = new Date(relDate.getFullYear(), relDate.getMonth(), relDate.getDate());
+      const startDateWithoutTime = new Date(this.startDate.getFullYear(), this.startDate.getMonth(), this.startDate.getDate());
+      const endDateWithoutTime = new Date(this.endDate.getFullYear(), this.endDate.getMonth(), this.endDate.getDate());
+
+      const isInRange = relDateWithoutTime >= startDateWithoutTime && relDateWithoutTime <= endDateWithoutTime;
+
+      return isInRange;
+    }).length;
+
+    let totalPeriods = 0;
+
+    totalPeriods = this.getTotalDays();
+
+    console.log(`Total releases: ${totalReleases}`);
+    console.log(`Total periods (days): ${totalPeriods}`);
+
+    const average = totalPeriods / totalReleases;
+    return parseFloat(average.toFixed(2));
   }
 
-  monthly(): number {
-    let releaseCount = 0;
-    for (const release of this.rList) {
-      const relDate = new Date(release.published_at);
-      if (this.days_between(this.today, relDate) < 31) {
-        this.log.push(`release->  ${release.name}:${release.published_at}`);
-        releaseCount++;
-      }
-    }
+  private getTotalDays(): number {
+    const startDateWithoutTime = new Date(this.startDate.getFullYear(), this.startDate.getMonth(), this.startDate.getDate());
+    const endDateWithoutTime = new Date(this.endDate.getFullYear(), this.endDate.getMonth(), this.endDate.getDate());
 
-    return releaseCount;
-  }
-
-  rate(): string {
-    const average = this.monthlyAverage(); // Usar a média mensal
-    return average.toFixed(2); // Retorna a média com 2 casas decimais
-  }
-
-  // Agrupar releases por mês e calcular a média
-  monthlyAverage(): number {
-    const releasesByMonth: Record<string, Release[]> = {};
-
-    // Agrupar releases por mês/ano
-    for (const release of this.rList) {
-      const relDate = new Date(release.published_at);
-      const monthKey = `${relDate.getFullYear()}-${relDate.getMonth() + 1}`; // Ex: "2025-4"
-      if (!releasesByMonth[monthKey]) {
-        releasesByMonth[monthKey] = [];
-      }
-      releasesByMonth[monthKey].push(release);
-    }
-
-    // Calcular o número de releases por mês
-    const monthlyCounts = Object.values(releasesByMonth).map(
-      (releases) => releases.length
-    );
-
-    // Calcular a média
-    const totalReleases = monthlyCounts.reduce((sum, count) => sum + count, 0);
-    const average = totalReleases / monthlyCounts.length;
-
-    // Logar os resultados
-    for (const [month, releases] of Object.entries(releasesByMonth)) {
-        //this.log.push(`Month: ${month}, Releases: ${releases.length}`);
-    }
-
-    return parseFloat(average.toFixed(2)); // Retorna a média com 2 casas decimais
-  }
-
-  // Calcular a diferença em dias entre duas datas
-  private days_between(date1: Date, date2: Date): number {
-    const differenceMs = Math.abs(date1.valueOf() - date2.valueOf());
-    return Math.round(differenceMs / ONE_DAY);
+    const differenceMs = endDateWithoutTime.getTime() - startDateWithoutTime.getTime();
+    return Math.floor(differenceMs / ONE_DAY) + 1;
   }
 }

@@ -1,75 +1,47 @@
-//
-// O número de milissegundos em um dia
 const ONE_DAY = 1000 * 60 * 60 * 24;
 export class DeployFrequency {
-    log = [];
-    today = new Date();
     rList = new Array();
-    constructor(releases, dateString = null) {
+    startDate;
+    endDate;
+    constructor(releases, startDate, endDate) {
         this.rList = releases;
+        this.startDate = startDate ?? (this.rList.length > 0 ? new Date(this.rList[0].published_at) : new Date(0));
+        this.endDate = endDate ?? new Date();
         if (this.rList === null || this.rList.length === 0) {
-            throw new Error('Empty release list');
+            console.log('Empty release list');
         }
-        if (dateString !== null) {
-            this.today = new Date(dateString);
+        if (this.startDate > this.endDate) {
+            console.log('Start date must be before end date');
         }
-    }
-    getLog() {
-        return this.log;
-    }
-    weekly() {
-        let releaseCount = 0;
-        for (const release of this.rList) {
-            const relDate = new Date(release.published_at);
-            if (this.days_between(this.today, relDate) < 8) {
-                this.log.push(`release->  ${release.name}:${release.published_at}`);
-                releaseCount++;
-            }
-        }
-        return releaseCount;
-    }
-    monthly() {
-        let releaseCount = 0;
-        for (const release of this.rList) {
-            const relDate = new Date(release.published_at);
-            if (this.days_between(this.today, relDate) < 31) {
-                this.log.push(`release->  ${release.name}:${release.published_at}`);
-                releaseCount++;
-            }
-        }
-        return releaseCount;
     }
     rate() {
-        const average = this.monthlyAverage(); // Usar a média mensal
-        return average.toFixed(2); // Retorna a média com 2 casas decimais
-    }
-    // Agrupar releases por mês e calcular a média
-    monthlyAverage() {
-        const releasesByMonth = {};
-        // Agrupar releases por mês/ano
-        for (const release of this.rList) {
+        if (this.rList.length < 2) {
+            console.log('At least two releases are required to calculate the average time between releases.');
+        }
+        const totalReleases = this.rList.filter(release => {
             const relDate = new Date(release.published_at);
-            const monthKey = `${relDate.getFullYear()}-${relDate.getMonth() + 1}`; // Ex: "2025-4"
-            if (!releasesByMonth[monthKey]) {
-                releasesByMonth[monthKey] = [];
+            // Se startDate ou endDate forem nulos, não aplicar o filtro
+            if (!this.startDate || !this.endDate) {
+                return true;
             }
-            releasesByMonth[monthKey].push(release);
-        }
-        // Calcular o número de releases por mês
-        const monthlyCounts = Object.values(releasesByMonth).map((releases) => releases.length);
-        // Calcular a média
-        const totalReleases = monthlyCounts.reduce((sum, count) => sum + count, 0);
-        const average = totalReleases / monthlyCounts.length;
-        // Logar os resultados
-        for (const [month, releases] of Object.entries(releasesByMonth)) {
-            //this.log.push(`Month: ${month}, Releases: ${releases.length}`);
-        }
-        return parseFloat(average.toFixed(2)); // Retorna a média com 2 casas decimais
+            const relDateWithoutTime = new Date(relDate.getFullYear(), relDate.getMonth(), relDate.getDate());
+            const startDateWithoutTime = new Date(this.startDate.getFullYear(), this.startDate.getMonth(), this.startDate.getDate());
+            const endDateWithoutTime = new Date(this.endDate.getFullYear(), this.endDate.getMonth(), this.endDate.getDate());
+            const isInRange = relDateWithoutTime >= startDateWithoutTime && relDateWithoutTime <= endDateWithoutTime;
+            return isInRange;
+        }).length;
+        let totalPeriods = 0;
+        totalPeriods = this.getTotalDays();
+        console.log(`Total releases: ${totalReleases}`);
+        console.log(`Total periods (days): ${totalPeriods}`);
+        const average = totalPeriods / totalReleases;
+        return parseFloat(average.toFixed(2));
     }
-    // Calcular a diferença em dias entre duas datas
-    days_between(date1, date2) {
-        const differenceMs = Math.abs(date1.valueOf() - date2.valueOf());
-        return Math.round(differenceMs / ONE_DAY);
+    getTotalDays() {
+        const startDateWithoutTime = new Date(this.startDate.getFullYear(), this.startDate.getMonth(), this.startDate.getDate());
+        const endDateWithoutTime = new Date(this.endDate.getFullYear(), this.endDate.getMonth(), this.endDate.getDate());
+        const differenceMs = endDateWithoutTime.getTime() - startDateWithoutTime.getTime();
+        return Math.floor(differenceMs / ONE_DAY) + 1;
     }
 }
 //# sourceMappingURL=DeployFrequency.js.map
