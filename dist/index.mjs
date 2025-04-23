@@ -4,28 +4,32 @@ import fetch from 'node-fetch';
 import { Octokit } from '@octokit/rest';
 import { ReleaseAdapter } from './ReleaseAdapter.js';
 import { DeployFrequency } from './DeployFrequency.js';
-import { IssuesAdapter } from './IssuesAdapter.js';
-import { PullRequestsAdapter } from './PullRequestsAdapter.js';
-import { CommitsAdapter } from './CommitsAdapter.js';
 import fs from 'fs';
 import path from 'path';
 dotenv.config();
 export async function run() {
     try {
-        const repositoriesEnv = process.env.GITHUB_REPOSITORY || '';
         const token = process.env.GITHUB_TOKEN || '';
-        const logging = process.env.LOGGING === 'false';
-        const filtered = process.env.FILTERED === 'true';
         const startDate = process.env.START_DATE ? new Date(process.env.START_DATE) : undefined;
         const endDate = process.env.END_DATE ? new Date(process.env.END_DATE) : undefined;
-        if (!repositoriesEnv || !token) {
-            throw new Error('Please configure the GITHUB_REPOSITORY and GITHUB_TOKEN variables in the .env file');
+        if (!token) {
+            throw new Error('Please configure the GITHUB_TOKEN variable in the .env file');
         }
-        const repositories = repositoriesEnv
-            .split(/[[\]\n,]+/)
-            .map(s => s.trim())
-            .filter(x => x !== '');
-        console.log(`${repositories.length} repository(ies) registered.`);
+        // Load repositories and categories from projects.csv
+        const projectsFilePath = path.join(process.cwd(), 'projects.csv');
+        if (!fs.existsSync(projectsFilePath)) {
+            throw new Error(`File projects.csv not found at ${projectsFilePath}`);
+        }
+        const projectsData = fs.readFileSync(projectsFilePath, 'utf-8');
+        const repositories = projectsData
+            .split('\n')
+            .map(line => line.trim())
+            .filter(line => line && !line.startsWith('//')) // Ignore empty lines and comments
+            .map(line => {
+            const [repository, category] = line.split(',');
+            return { repository: repository.trim(), category: category.trim() };
+        });
+        console.log(`${repositories.length} repository(ies) loaded from projects.csv.`);
         console.log(`Start Date: ${startDate ? startDate.toISOString() : 'Not defined'}`);
         console.log(`End Date: ${endDate ? endDate.toISOString() : 'Not defined'}`);
         // Create a single Octokit instance with fetch
@@ -34,8 +38,8 @@ export async function run() {
             request: { fetch },
         });
         const results = [];
-        for (const repository of repositories) {
-            console.log(`>>>> Processing repository: ${repository}`);
+        for (const { repository, category } of repositories) {
+            console.log(`>>>> Processing repository: ${repository} (Category: ${category})`);
             const [owner, repo] = repository.split('/');
             // Deployment Frequency
             const rel = new ReleaseAdapter(octokit, owner, repo);
@@ -43,30 +47,12 @@ export async function run() {
             const df = new DeployFrequency(releaseList, startDate, endDate);
             const rate = df.rate();
             console.log(`Deployment Frequency (days):`, rate);
-            // Lead Time
-            const prs = new PullRequestsAdapter(octokit, owner, repo);
-            const commits = new CommitsAdapter(octokit);
-            //const pulls = (await prs.GetAllPRs()) || [];
-            //const lt = new LeadTime(pulls, releaseList, commits);
-            //const leadTime = await lt.getLeadTime(filtered);
-            //console.log(`Lead Time:`, leadTime);
-            // Change Failure Rate
-            // Mean Time to Restore
-            const issueAdapter = new IssuesAdapter(octokit, owner, repo);
-            //const issueList = (await issueAdapter.GetAllIssues()) || [];
-            // if (issueList.length > 0) {
-            //   const cfr = new ChangeFailureRate(issueList, releaseList);
-            //   console.log(`Change Failure Rate:`, cfr.Cfr());
-            //   const mttr = new MeanTimeToRestore(issueList, releaseList);
-            //   console.log(`Mean Time to Restore:`, mttr.mttr());
-            // } else {
-            //   console.log(`Change Failure Rate: empty issue list`);
-            //   console.log(`Mean Time to Restore: empty issue list`);
-            // }
-            results.push({ repository, df: rate });
+            // Add to results
+            results.push({ repository, category, df: rate });
         }
         // Generate the CSV
-        const csvContent = 'Repository,Deployment Frequency (DF)\n' + results.map(r => `${r.repository},${r.df}`).join('\n');
+        const csvContent = 'Repository,Category,Deployment Frequency (DF)\n' +
+            results.map(r => `${r.repository},${r.category},${r.df}`).join('\n');
         const outputPath = path.join(process.cwd(), 'df_metrics.csv');
         fs.writeFileSync(outputPath, csvContent);
         console.log(`CSV generated at: ${outputPath}`);

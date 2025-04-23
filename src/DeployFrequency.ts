@@ -24,13 +24,8 @@ export class DeployFrequency {
     if (this.rList.length < 2) {
       return null;
     }
-
       const totalReleases = this.rList.filter(release => {
       const relDate = new Date(release.published_at);
-
-      if (!this.startDate || !this.endDate) {
-        return true;
-      }
 
       const relDateWithoutTime = new Date(relDate.getFullYear(), relDate.getMonth(), relDate.getDate());
       const startDateWithoutTime = new Date(this.startDate.getFullYear(), this.startDate.getMonth(), this.startDate.getDate());

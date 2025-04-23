@@ -16,14 +16,10 @@ export class DeployFrequency {
     }
     rate() {
         if (this.rList.length < 2) {
-            console.log('At least two releases are required to calculate the average time between releases.');
+            return null;
         }
         const totalReleases = this.rList.filter(release => {
             const relDate = new Date(release.published_at);
-            // Se startDate ou endDate forem nulos, não aplicar o filtro
-            if (!this.startDate || !this.endDate) {
-                return true;
-            }
             const relDateWithoutTime = new Date(relDate.getFullYear(), relDate.getMonth(), relDate.getDate());
             const startDateWithoutTime = new Date(this.startDate.getFullYear(), this.startDate.getMonth(), this.startDate.getDate());
             const endDateWithoutTime = new Date(this.endDate.getFullYear(), this.endDate.getMonth(), this.endDate.getDate());
