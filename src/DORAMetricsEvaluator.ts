@@ -6,7 +6,7 @@ export class DORAMetricsEvaluator {
    */
   static evaluateDeploymentFrequency(df: number | null): string {
     if (df === null) {
-      return 'Indefinido';
+      return 'null';
     }
 
     if (df <= 1) {
@@ -27,7 +27,7 @@ export class DORAMetricsEvaluator {
    */
   static evaluateLeadTime(leadTime: number | null): string {
     if (leadTime === null) {
-      return 'Indefinido';
+      return 'null';
     }
 
     if (leadTime < 1) {
@@ -48,7 +48,7 @@ export class DORAMetricsEvaluator {
    */
   static evaluateChangeFailureRate(failureRate: number | null): string {
     if (failureRate === null) {
-      return 'Indefinido';
+      return 'null';
     }
 
     if (failureRate <= 15) {
@@ -69,7 +69,7 @@ export class DORAMetricsEvaluator {
    */
   static evaluateMTTR(mttr: number | null): string {
     if (mttr === null) {
-      return 'Indefinido';
+      return 'null';
     }
 
     if (mttr < 1) {

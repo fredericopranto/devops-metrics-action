@@ -24,14 +24,13 @@ export class PullRequestsAdapter implements IPullRequestsAdapter {
       let nextPage: PullRequest[] = [];
 
       do {
-        //console.log(`Fetching pull requests for repository "${this.repo}", page ${page}...`);
         nextPage = await this.getPRs(since, page);
-        //console.log(`Fetched ${nextPage.length} pull requests from page ${page}`);
+        console.log(`Fetched ${nextPage.length} pull requests from page ${page}`);
         result = result.concat(nextPage);
         page++;
-      } while (nextPage.length === 100);
+      } while (nextPage.length === 50);
 
-      //console.log(`Total pull requests fetched for repository "${this.repo}": ${result.length}`);
+      console.log(`Total pull requests fetched for repository "${this.repo}": ${result.length}`);
       return result;
     } catch (e: any) {
       console.error(`Error fetching pull requests for repository "${this.repo}": ${e.message}`);
@@ -47,7 +46,7 @@ export class PullRequestsAdapter implements IPullRequestsAdapter {
       headers: {
         'X-GitHub-Api-Version': '2022-11-28',
       },
-      per_page: 100,
+      per_page: 50,
       page,
       state: 'closed',
     };
@@ -61,7 +60,71 @@ export class PullRequestsAdapter implements IPullRequestsAdapter {
       params
     );
 
-    //console.log(`Fetched ${result.data.length} pull requests from page ${page} for repository "${this.repo}"`);
     return result.data as PullRequest[];
+  }
+
+  async getPullRequestsGraphQL(startDate?: Date, endDate?: Date): Promise<PullRequest[]> {
+    const query = `
+      query ($owner: String!, $repo: String!, $cursor: String) {
+        repository(owner: $owner, name: $repo) {
+          pullRequests(
+            first: 50,
+            after: $cursor,
+            states: CLOSED,
+            orderBy: { field: UPDATED_AT, direction: DESC }
+          ) {
+            edges {
+              node {
+                id
+                number
+                title
+                state
+                createdAt
+                updatedAt
+                closedAt
+                mergedAt
+                baseRefName
+                headRefName
+                url
+              }
+            }
+            pageInfo {
+              endCursor
+              hasNextPage
+            }
+          }
+        }
+      }
+    `;
+
+    const variables: any = {
+      owner: this.owner,
+      repo: this.repo,
+      cursor: null,
+    };
+
+    let pullRequests: PullRequest[] = [];
+    let hasNextPage = true;
+
+    while (hasNextPage) {
+      const response = await this.octokit.graphql<any>(query, variables);
+      const edges = response.repository.pullRequests.edges;
+
+      // Filtrar PRs pelo intervalo de datas
+      const filteredPRs = edges
+        .map((edge: any) => edge.node)
+        .filter((pr: any) => {
+          const closedAt = new Date(pr.closedAt);
+          return (!startDate || closedAt >= startDate) && (!endDate || closedAt <= endDate);
+        });
+
+      pullRequests = pullRequests.concat(filteredPRs);
+
+      // Atualizar paginação
+      hasNextPage = response.repository.pullRequests.pageInfo.hasNextPage;
+      variables.cursor = response.repository.pullRequests.pageInfo.endCursor;
+    }
+
+    return pullRequests;
   }
 }

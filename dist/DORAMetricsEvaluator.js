@@ -6,7 +6,7 @@ export class DORAMetricsEvaluator {
      */
     static evaluateDeploymentFrequency(df) {
         if (df === null) {
-            return 'Indefinido';
+            return 'null';
         }
         if (df <= 1) {
             return 'Elite'; // Sob demanda (várias vezes ao dia)
@@ -28,7 +28,7 @@ export class DORAMetricsEvaluator {
      */
     static evaluateLeadTime(leadTime) {
         if (leadTime === null) {
-            return 'Indefinido';
+            return 'null';
         }
         if (leadTime < 1) {
             return 'Elite'; // Menos de 1 dia
@@ -50,7 +50,7 @@ export class DORAMetricsEvaluator {
      */
     static evaluateChangeFailureRate(failureRate) {
         if (failureRate === null) {
-            return 'Indefinido';
+            return 'null';
         }
         if (failureRate <= 15) {
             return 'Elite'; // 0–15%
@@ -72,7 +72,7 @@ export class DORAMetricsEvaluator {
      */
     static evaluateMTTR(mttr) {
         if (mttr === null) {
-            return 'Indefinido';
+            return 'null';
         }
         if (mttr < 1) {
             return 'Elite'; // Menos de 1 hora
