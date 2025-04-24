@@ -9,6 +9,9 @@ import path from 'path';
 import { PullRequestsAdapter } from './PullRequestsAdapter.js';
 import { LeadTime } from './LeadTime.js';
 import { CommitsAdapter } from './CommitsAdapter.js';
+import { IssuesAdapter } from './IssuesAdapter.js';
+import { ChangeFailureRate } from './ChangeFailureRate.js';
+import { MeanTimeToRestore } from './MeanTimeToRestore.js';
 dotenv.config();
 export async function run() {
     try {
@@ -71,7 +74,21 @@ export async function run() {
             }
             const ltClassification = DORAMetricsEvaluator.evaluateLeadTime(leadTime);
             console.log(`Lead Time (days):`, leadTime);
-            console.log(`Deployment Frequency (level): ${ltClassification}`);
+            console.log(`Lead Time (level): ${ltClassification}`);
+            // Change Failure Rate
+            // Mean Time to Restore
+            const issueAdapter = new IssuesAdapter(octokit, owner, repo);
+            const issueList = (await issueAdapter.GetAllIssues()) || [];
+            if (issueList.length > 0) {
+                const cfr = new ChangeFailureRate(issueList, releaseList);
+                console.log(`Change Failure Rate:`, cfr.Cfr());
+                const mttr = new MeanTimeToRestore(issueList, releaseList);
+                console.log(`Mean Time to Restore:`, mttr.mttr());
+            }
+            else {
+                console.log(`Change Failure Rate: null`);
+                console.log(`Mean Time to Restore: null`);
+            }
             results.push({
                 repository,
                 category,

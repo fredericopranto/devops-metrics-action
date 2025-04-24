@@ -21,7 +21,7 @@ export class IssuesAdapter {
                 //console.log(`Fetched ${nextPage.length} issues from page ${page}`);
                 result = result.concat(nextPage);
                 page++;
-            } while (nextPage.length === 100);
+            } while (nextPage.length === 50);
             //console.log(`Total issues fetched for repository "${this.repo}": ${result.length}`);
             return result;
         }
@@ -38,7 +38,7 @@ export class IssuesAdapter {
             headers: {
                 'X-GitHub-Api-Version': '2022-11-28',
             },
-            per_page: 100,
+            per_page: 50,
             page,
             state: 'all',
         };

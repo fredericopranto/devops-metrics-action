@@ -1,3 +1,6 @@
+import dotenv from 'dotenv';
+dotenv.config();
+
 import type { Issue } from './types/Issue.js';
 import type { Release } from './types/Release.js';
 
@@ -13,8 +16,9 @@ export class ChangeFailureRate {
   }
 
   getBugs(): Issue[] {
+    const bugLabels = (process.env.BUG_LABEL || 'bug,defect,incident').split(',').map(label => label.trim()); 
     return this.issues.filter(issue =>
-      issue.labels.some(label => label.name === 'bug')
+      issue.labels.some(label => bugLabels.includes(label.name))
     );
   }
 
