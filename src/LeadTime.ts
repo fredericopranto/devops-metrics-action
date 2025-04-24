@@ -14,19 +14,18 @@ export class LeadTime {
     name: string;
     published_at: string;
   }[];
-  today: Date;
+  branch: string;
   commitsAdapter: ICommitsAdapter;
 
   constructor(
     pulls: PullRequest[],
     releases: Release[],
     commitsAdapter: ICommitsAdapter,
-    today: Date | null = null
+    branch: string
   ) {
-    this.today = today ? today : new Date();
-
+    this.commitsAdapter = commitsAdapter;
+    this.branch = branch;
     this.pulls = pulls;
-
     this.releases = releases.map((r) => {
       return {
         published: +new Date(r.published_at),
@@ -36,10 +35,9 @@ export class LeadTime {
       };
     });
 
-    this.commitsAdapter = commitsAdapter;
   }
 
-  async getLeadTime(filtered = false): Promise<number | null>{
+  async getLeadTime(): Promise<number | null>{
     if (this.pulls.length === 0 || this.releases.length === 0) {
       return null;
     }
@@ -49,17 +47,16 @@ export class LeadTime {
 
     for (const pull of this.pulls) {
       processedCount++;
-      console.log(`Processing PR ${processedCount}/${this.pulls.length}: ${pull.title}`);
+      //console.log(`Processing PR ${processedCount}/${this.pulls.length}: ${pull.title}`);
 
       if (
         typeof pull.merged_at === 'string' &&
         pull.merged_at &&
         typeof pull.base.repo.name === 'string' &&
         pull.base.repo.name &&
-        pull.base.ref === 'main'
+        pull.base.ref === this.branch
       ) {
         const mergeTime = +new Date(pull.merged_at);
-        console.log(`Merge time for PR "${pull.title}": ${new Date(mergeTime).toISOString()}`);
 
         const laterReleases = this.releases.filter(
           (r) => r.published > mergeTime && r.url.includes(pull.base.repo.name)
@@ -69,7 +66,6 @@ export class LeadTime {
         }
 
         const deployTime: number = laterReleases[0].published;
-        console.log(`Deploy time for PR "${pull.title}": ${new Date(deployTime).toISOString()}`);
 
         const commits = (await this.commitsAdapter.getCommitsFromUrl(
           pull.commits_url
@@ -93,7 +89,8 @@ export class LeadTime {
     }
 
     const averageLeadTime =
-      Math.round((leadTimes.reduce((p, c) => p + c) / leadTimes.length) * 100) / 100;
+      Math.round((leadTimes.reduce((p, c) => p + c) / leadTimes.length) * 100) /
+      100;
     return averageLeadTime;
   }
 }

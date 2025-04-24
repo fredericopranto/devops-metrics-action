@@ -61,30 +61,31 @@ export async function run() {
             // Lead Time
             const prs = new PullRequestsAdapter(octokit, owner, repo);
             const commits = new CommitsAdapter(octokit);
-            //const pulls2 = (await prs.getPullRequestsGraphQL(startDate, endDate)) || [];
             const pulls = (await prs.GetAllPRs()) || [];
-            const lt = new LeadTime(pulls, releaseList, commits);
-            const leadTime = await lt.getLeadTime(filtered);
+            const branch = (await prs.getDefaultBranch(owner, repo));
+            const lt = new LeadTime(pulls, releaseList, commits, branch);
+            const leadTime = await lt.getLeadTime();
             if (leadTime === null) {
                 nullResults.push({ repository, category, metric: 'Lead Time' });
                 continue;
             }
+            const ltClassification = DORAMetricsEvaluator.evaluateLeadTime(leadTime);
             console.log(`Lead Time (days):`, leadTime);
+            console.log(`Deployment Frequency (level): ${ltClassification}`);
             results.push({
                 repository,
                 category,
                 df: deploysPerMonth,
                 classification: dfClassification,
                 leadTime: leadTime.toFixed(2),
+                ltClassification,
             });
         }
-        // Generate the main CSV (metrics.csv)
         const csvContent = 'Repository,Category,Deployment Frequency (DF),DF Level,Lead Time (days)\n' +
             results.map(r => `${r.repository},${r.category},${r.df},${r.classification},${r.leadTime}`).join('\n');
         const outputPath = path.join(process.cwd(), 'metrics.csv');
         fs.writeFileSync(outputPath, csvContent);
         console.log(`CSV generated at: ${outputPath}`);
-        // Generate the null metrics CSV (null_metrics.csv)
         const nullCsvContent = 'Repository,Category,Metric\n' +
             nullResults.map(r => `${r.repository},${r.category},${r.metric}`).join('\n');
         const nullOutputPath = path.join(process.cwd(), 'null_metrics.csv');

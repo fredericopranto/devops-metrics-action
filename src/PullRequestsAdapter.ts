@@ -25,12 +25,10 @@ export class PullRequestsAdapter implements IPullRequestsAdapter {
 
       do {
         nextPage = await this.getPRs(since, page);
-        console.log(`Fetched ${nextPage.length} pull requests from page ${page}`);
         result = result.concat(nextPage);
         page++;
       } while (nextPage.length === 50);
 
-      console.log(`Total pull requests fetched for repository "${this.repo}": ${result.length}`);
       return result;
     } catch (e: any) {
       console.error(`Error fetching pull requests for repository "${this.repo}": ${e.message}`);
@@ -63,68 +61,17 @@ export class PullRequestsAdapter implements IPullRequestsAdapter {
     return result.data as PullRequest[];
   }
 
-  async getPullRequestsGraphQL(startDate?: Date, endDate?: Date): Promise<PullRequest[]> {
-    const query = `
-      query ($owner: String!, $repo: String!, $cursor: String) {
-        repository(owner: $owner, name: $repo) {
-          pullRequests(
-            first: 50,
-            after: $cursor,
-            states: CLOSED,
-            orderBy: { field: UPDATED_AT, direction: DESC }
-          ) {
-            edges {
-              node {
-                id
-                number
-                title
-                state
-                createdAt
-                updatedAt
-                closedAt
-                mergedAt
-                baseRefName
-                headRefName
-                url
-              }
-            }
-            pageInfo {
-              endCursor
-              hasNextPage
-            }
-          }
-        }
-      }
-    `;
+  async getDefaultBranch(owner: string, repo: string): Promise<string> {
+    try {
+      const response = await this.octokit.request('GET /repos/{owner}/{repo}', {
+        owner,
+        repo,
+      });
 
-    const variables: any = {
-      owner: this.owner,
-      repo: this.repo,
-      cursor: null,
-    };
-
-    let pullRequests: PullRequest[] = [];
-    let hasNextPage = true;
-
-    while (hasNextPage) {
-      const response = await this.octokit.graphql<any>(query, variables);
-      const edges = response.repository.pullRequests.edges;
-
-      // Filtrar PRs pelo intervalo de datas
-      const filteredPRs = edges
-        .map((edge: any) => edge.node)
-        .filter((pr: any) => {
-          const closedAt = new Date(pr.closedAt);
-          return (!startDate || closedAt >= startDate) && (!endDate || closedAt <= endDate);
-        });
-
-      pullRequests = pullRequests.concat(filteredPRs);
-
-      // Atualizar paginação
-      hasNextPage = response.repository.pullRequests.pageInfo.hasNextPage;
-      variables.cursor = response.repository.pullRequests.pageInfo.endCursor;
+      return response.data.default_branch;
+    } catch (error) {
+      console.error(`Error fetching default branch for ${owner}/${repo}:`, error);
+      throw error;
     }
-
-    return pullRequests;
   }
 }

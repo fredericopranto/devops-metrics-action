@@ -3,10 +3,11 @@ export class LeadTime {
     log = [];
     pulls;
     releases;
-    today;
+    branch;
     commitsAdapter;
-    constructor(pulls, releases, commitsAdapter, today = null) {
-        this.today = today ? today : new Date();
+    constructor(pulls, releases, commitsAdapter, branch) {
+        this.commitsAdapter = commitsAdapter;
+        this.branch = branch;
         this.pulls = pulls;
         this.releases = releases.map((r) => {
             return {
@@ -16,9 +17,8 @@ export class LeadTime {
                 published_at: r.published_at,
             };
         });
-        this.commitsAdapter = commitsAdapter;
     }
-    async getLeadTime(filtered = false) {
+    async getLeadTime() {
         if (this.pulls.length === 0 || this.releases.length === 0) {
             return null;
         }
@@ -26,20 +26,18 @@ export class LeadTime {
         let processedCount = 0;
         for (const pull of this.pulls) {
             processedCount++;
-            console.log(`Processing PR ${processedCount}/${this.pulls.length}: ${pull.title}`);
+            //console.log(`Processing PR ${processedCount}/${this.pulls.length}: ${pull.title}`);
             if (typeof pull.merged_at === 'string' &&
                 pull.merged_at &&
                 typeof pull.base.repo.name === 'string' &&
                 pull.base.repo.name &&
-                pull.base.ref === 'main') {
+                pull.base.ref === this.branch) {
                 const mergeTime = +new Date(pull.merged_at);
-                console.log(`Merge time for PR "${pull.title}": ${new Date(mergeTime).toISOString()}`);
                 const laterReleases = this.releases.filter((r) => r.published > mergeTime && r.url.includes(pull.base.repo.name));
                 if (laterReleases.length === 0) {
                     continue;
                 }
                 const deployTime = laterReleases[0].published;
-                console.log(`Deploy time for PR "${pull.title}": ${new Date(deployTime).toISOString()}`);
                 const commits = (await this.commitsAdapter.getCommitsFromUrl(pull.commits_url));
                 if (commits.length === 0) {
                     continue;
@@ -49,9 +47,6 @@ export class LeadTime {
                     .sort((a, b) => a - b)[0];
                 const leadTime = (deployTime - commitTime) / ONE_DAY;
                 leadTimes.push(leadTime);
-            }
-            else {
-                return null;
             }
         }
         if (leadTimes.length === 0) {
