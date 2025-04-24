@@ -16,7 +16,7 @@ export class ChangeFailureRate {
   }
 
   getBugs(): Issue[] {
-    const bugLabels = (process.env.BUG_LABEL || 'bug,defect,incident').split(',').map(label => label.trim()); 
+    const bugLabels = (process.env.BUG_LABEL || 'bug').split(',').map(label => label.trim()); 
     return this.issues.filter(issue =>
       issue.labels.some(label => bugLabels.includes(label.name))
     );

@@ -40,9 +40,9 @@ export async function run(): Promise<void> {
         return { repository: repository.trim(), category: category.trim() };
       });
 
-      console.log(`${repositories.length} repository(ies) loaded from projects.csv.`);
-      console.log(`Start Date: ${startDate ? startDate.toISOString() : 'Not defined'}`);
-      console.log(`End Date: ${endDate ? endDate.toISOString() : 'Not defined'}`);
+    console.log(repositories.length, 'repository(ies) loaded from projects.csv.');
+    console.log('Start Date: ' + (startDate ? startDate.toISOString() : 'Not defined'));
+    console.log('End Date: ' + (endDate ? endDate.toISOString() : 'Not defined'));
 
     const octokit = new Octokit({
       auth: token,
@@ -57,14 +57,14 @@ export async function run(): Promise<void> {
     const nullResults: { repository: string; category: string; metric: string }[] = [];
 
     for (const { repository, category } of repositories) {
-      console.log('>>>> Processing repository: ${repository} (Category: ${category})');
+      console.log('>>>> Processing repository: ' + repository + ' (Category: ' + category + ')');
 
       const [owner, repo] = repository.split('/');
       const adapterRelease = new ReleaseAdapter(octokit, owner, repo);
       const releases = (await adapterRelease.GetAllReleases(startDate, endDate)) || [];
       const issue = new IssuesAdapter(octokit, owner, repo);
       const issues = (await issue.GetAllIssues()) || [];
-      console.log(`Total issues: ${issues.length}`);
+      console.log('Total issues: ', issues.length);
 
       // Deployment Frequency
       const df = new DeployFrequency(releases, startDate, endDate);
@@ -120,14 +120,14 @@ export async function run(): Promise<void> {
 
     const outputPath = path.join(process.cwd(), 'metrics.csv');
     fs.writeFileSync(outputPath, csvContent);
-    console.log('CSV generated at: ${outputPath}');
+    console.log('CSV generated at:' + outputPath);
 
     const nullCsvContent =
       'Repository,Category,Metric\n' +
       nullResults.map(r => '${r.repository},${r.category},${r.metric}').join('\n');
     const nullOutputPath = path.join(process.cwd(), 'null_metrics.csv');
     fs.writeFileSync(nullOutputPath, nullCsvContent);
-    console.log('Null metrics CSV generated at: ${nullOutputPath}');
+    console.log('Null metrics CSV generated at: ' + nullOutputPath);
   } catch (error: any) {
     console.error('Error running the project:', error.message);
   }

@@ -15,7 +15,6 @@ import { MeanTimeToRestore } from './MeanTimeToRestore.js';
 dotenv.config();
 export async function run() {
     try {
-        const filtered = process.env.FILTERED === 'false';
         const token = process.env.GITHUB_TOKEN || '';
         const startDate = process.env.START_DATE ? new Date(process.env.START_DATE) : undefined;
         const endDate = process.env.END_DATE ? new Date(process.env.END_DATE) : undefined;
@@ -35,9 +34,9 @@ export async function run() {
             const [repository, category] = line.split(',');
             return { repository: repository.trim(), category: category.trim() };
         });
-        console.log('${repositories.length} repository(ies) loaded from projects.csv.');
-        console.log('Start Date: ${startDate ? startDate.toISOString() : "Not defined"}');
-        console.log('End Date: ${endDate ? endDate.toISOString() : "Not defined"}');
+        console.log(`${repositories.length} repository(ies) loaded from projects.csv.`);
+        console.log('Start Date: ' + (startDate ? startDate.toISOString() : 'Not defined'));
+        console.log('End Date: ' + (endDate ? endDate.toISOString() : 'Not defined'));
         const octokit = new Octokit({
             auth: token,
             request: { fetch },
@@ -45,14 +44,15 @@ export async function run() {
         const results = [];
         const nullResults = [];
         for (const { repository, category } of repositories) {
-            console.log('>>>> Processing repository: ${repository} (Category: ${category})');
+            console.log('>>>> Processing repository: ' + repository + ' (Category: ' + category + ')');
             const [owner, repo] = repository.split('/');
-            const rel = new ReleaseAdapter(octokit, owner, repo);
-            const releaseList = (await rel.GetAllReleases(startDate, endDate)) || [];
+            const adapterRelease = new ReleaseAdapter(octokit, owner, repo);
+            const releases = (await adapterRelease.GetAllReleases(startDate, endDate)) || [];
             const issue = new IssuesAdapter(octokit, owner, repo);
-            const issueList = (await issue.GetAllIssues()) || [];
+            const issues = (await issue.GetAllIssues()) || [];
+            console.log('Total issues: ', issues.length);
             // Deployment Frequency
-            const df = new DeployFrequency(releaseList, startDate, endDate);
+            const df = new DeployFrequency(releases, startDate, endDate);
             const dfDays = df.rate();
             if (dfDays === null) {
                 nullResults.push({ repository, category, metric: 'df' });
@@ -64,11 +64,12 @@ export async function run() {
             console.log('Deployment Frequency (deploy/month):', dfValue);
             console.log('Deployment Frequency (level):', dfLevel);
             // Lead Time
-            const prs = new PullRequestsAdapter(octokit, owner, repo);
+            const adapterPR = new PullRequestsAdapter(octokit, owner, repo);
             const commits = new CommitsAdapter(octokit);
-            const pulls = (await prs.GetAllPRs()) || [];
-            const branch = (await prs.getDefaultBranch(owner, repo));
-            const lt = new LeadTime(pulls, releaseList, commits, branch);
+            const pulls = (await adapterPR.GetAllPRs()) || [];
+            console.log(`Total prs: ${pulls.length}`);
+            const branch = (await adapterPR.getDefaultBranch(owner, repo));
+            const lt = new LeadTime(pulls, releases, commits, branch);
             const ltValue = await lt.getLeadTime();
             if (ltValue === null) {
                 nullResults.push({ repository, category, metric: 'Lead Time' });
@@ -78,13 +79,13 @@ export async function run() {
             console.log('Lead Time (days):', ltValue);
             console.log('Lead Time (level):', ltLevel);
             // Change Failure Rate
-            const cfr = new ChangeFailureRate(issueList, releaseList);
+            const cfr = new ChangeFailureRate(issues, releases);
             const cfrValue = cfr.Cfr();
             const cfrLevel = DORAMetricsEvaluator.evaluateChangeFailureRate(cfrValue);
             console.log('Change Failure Rate:', cfrValue);
             console.log('Change Failure Rate (level):', cfrLevel);
             // Mean Time to Restore
-            const mttr = new MeanTimeToRestore(issueList, releaseList);
+            const mttr = new MeanTimeToRestore(issues, releases);
             const mttrValue = mttr.mttr();
             const mttrLevel = DORAMetricsEvaluator.evaluateMTTR(mttrValue);
             console.log('Mean Time to Restore:', mttrValue);
