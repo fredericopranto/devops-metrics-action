@@ -24,7 +24,7 @@ export async function run() {
         }
         const projectsFilePath = path.join(process.cwd(), 'projects.csv');
         if (!fs.existsSync(projectsFilePath)) {
-            throw new Error(`File projects.csv not found at ${projectsFilePath}`);
+            throw new Error('File projects.csv not found at ${projectsFilePath}');
         }
         const projectsData = fs.readFileSync(projectsFilePath, 'utf-8');
         const repositories = projectsData
@@ -35,9 +35,9 @@ export async function run() {
             const [repository, category] = line.split(',');
             return { repository: repository.trim(), category: category.trim() };
         });
-        console.log(`${repositories.length} repository(ies) loaded from projects.csv.`);
-        console.log(`Start Date: ${startDate ? startDate.toISOString() : 'Not defined'}`);
-        console.log(`End Date: ${endDate ? endDate.toISOString() : 'Not defined'}`);
+        console.log('${repositories.length} repository(ies) loaded from projects.csv.');
+        console.log('Start Date: ${startDate ? startDate.toISOString() : "Not defined"}');
+        console.log('End Date: ${endDate ? endDate.toISOString() : "Not defined"}');
         const octokit = new Octokit({
             auth: token,
             request: { fetch },
@@ -45,69 +45,68 @@ export async function run() {
         const results = [];
         const nullResults = [];
         for (const { repository, category } of repositories) {
-            console.log(`>>>> Processing repository: ${repository} (Category: ${category})`);
+            console.log('>>>> Processing repository: ${repository} (Category: ${category})');
             const [owner, repo] = repository.split('/');
             const rel = new ReleaseAdapter(octokit, owner, repo);
             const releaseList = (await rel.GetAllReleases(startDate, endDate)) || [];
+            const issue = new IssuesAdapter(octokit, owner, repo);
+            const issueList = (await issue.GetAllIssues()) || [];
             // Deployment Frequency
             const df = new DeployFrequency(releaseList, startDate, endDate);
-            const rate = df.rate();
-            if (rate === null) {
+            const dfDays = df.rate();
+            if (dfDays === null) {
                 nullResults.push({ repository, category, metric: 'df' });
                 continue;
             }
-            const deploysPerMonth = rate ? (30 / rate).toFixed(0) : 'null';
-            const dfClassification = DORAMetricsEvaluator.evaluateDeploymentFrequency(rate);
-            console.log(`Deployment Frequency (days):`, rate);
-            console.log(`Deployment Frequency (deploy/month):`, deploysPerMonth);
-            console.log(`Deployment Frequency (level): ${dfClassification}`);
+            const dfValue = dfDays ? (30 / dfDays).toFixed(2) : 'null';
+            const dfLevel = DORAMetricsEvaluator.evaluateDeploymentFrequency(dfDays);
+            console.log('Deployment Frequency (days):', dfDays);
+            console.log('Deployment Frequency (deploy/month):', dfValue);
+            console.log('Deployment Frequency (level):', dfLevel);
             // Lead Time
             const prs = new PullRequestsAdapter(octokit, owner, repo);
             const commits = new CommitsAdapter(octokit);
             const pulls = (await prs.GetAllPRs()) || [];
             const branch = (await prs.getDefaultBranch(owner, repo));
             const lt = new LeadTime(pulls, releaseList, commits, branch);
-            const leadTime = await lt.getLeadTime();
-            if (leadTime === null) {
+            const ltValue = await lt.getLeadTime();
+            if (ltValue === null) {
                 nullResults.push({ repository, category, metric: 'Lead Time' });
                 continue;
             }
-            const ltClassification = DORAMetricsEvaluator.evaluateLeadTime(leadTime);
-            console.log(`Lead Time (days):`, leadTime);
-            console.log(`Lead Time (level): ${ltClassification}`);
+            const ltLevel = DORAMetricsEvaluator.evaluateLeadTime(ltValue);
+            console.log('Lead Time (days):', ltValue);
+            console.log('Lead Time (level):', ltLevel);
             // Change Failure Rate
+            const cfr = new ChangeFailureRate(issueList, releaseList);
+            const cfrValue = cfr.Cfr();
+            const cfrLevel = DORAMetricsEvaluator.evaluateChangeFailureRate(cfrValue);
+            console.log('Change Failure Rate:', cfrValue);
+            console.log('Change Failure Rate (level):', cfrLevel);
             // Mean Time to Restore
-            const issueAdapter = new IssuesAdapter(octokit, owner, repo);
-            const issueList = (await issueAdapter.GetAllIssues()) || [];
-            if (issueList.length > 0) {
-                const cfr = new ChangeFailureRate(issueList, releaseList);
-                console.log(`Change Failure Rate:`, cfr.Cfr());
-                const mttr = new MeanTimeToRestore(issueList, releaseList);
-                console.log(`Mean Time to Restore:`, mttr.mttr());
-            }
-            else {
-                console.log(`Change Failure Rate: null`);
-                console.log(`Mean Time to Restore: null`);
-            }
+            const mttr = new MeanTimeToRestore(issueList, releaseList);
+            const mttrValue = mttr.mttr();
+            const mttrLevel = DORAMetricsEvaluator.evaluateMTTR(mttrValue);
+            console.log('Mean Time to Restore:', mttrValue);
+            console.log('Mean Time to Restore (level):', mttrLevel);
             results.push({
-                repository,
-                category,
-                df: deploysPerMonth,
-                classification: dfClassification,
-                leadTime: leadTime.toFixed(2),
-                ltClassification,
+                repository, category,
+                dfValue, dfLevel,
+                ltValue: ltValue.toFixed(2), ltLevel,
+                cfrValue, cfrLevel,
+                mttrValue, mttrLevel,
             });
         }
-        const csvContent = 'Repository,Category,Deployment Frequency (DF),DF Level,Lead Time (days)\n' +
-            results.map(r => `${r.repository},${r.category},${r.df},${r.classification},${r.leadTime}`).join('\n');
+        const csvContent = 'Repository,Category,Deployment Frequency (DF),DF Level,Lead Time (days),LT Level,Change Failure Rate (CFR),CFR Level,Mean Time to Restore (MTTR),MTTR Level\n' +
+            results.map(r => '${r.repository},${r.category},${r.dfValue},${r.dfLevel},${r.ltValue},${r.ltLevel},${r.cfrValue},${r.cfrLevel},${r.mttrValue},${r.mttrLevel}').join('\n');
         const outputPath = path.join(process.cwd(), 'metrics.csv');
         fs.writeFileSync(outputPath, csvContent);
-        console.log(`CSV generated at: ${outputPath}`);
+        console.log('CSV generated at: ${outputPath}');
         const nullCsvContent = 'Repository,Category,Metric\n' +
-            nullResults.map(r => `${r.repository},${r.category},${r.metric}`).join('\n');
+            nullResults.map(r => '${r.repository},${r.category},${r.metric}').join('\n');
         const nullOutputPath = path.join(process.cwd(), 'null_metrics.csv');
         fs.writeFileSync(nullOutputPath, nullCsvContent);
-        console.log(`Null metrics CSV generated at: ${nullOutputPath}`);
+        console.log('Null metrics CSV generated at: ${nullOutputPath}');
     }
     catch (error) {
         console.error('Error running the project:', error.message);
