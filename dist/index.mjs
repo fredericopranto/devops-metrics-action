@@ -4,6 +4,7 @@ import fetch from 'node-fetch';
 import { Octokit } from '@octokit/rest';
 import { ReleaseAdapter } from './ReleaseAdapter.js';
 import { DeployFrequency } from './DeployFrequency.js';
+import { DORAMetricsEvaluator } from './DORAMetricsEvaluator.js';
 import fs from 'fs';
 import path from 'path';
 dotenv.config();
@@ -16,7 +17,7 @@ export async function run() {
             throw new Error('Please configure the GITHUB_TOKEN variable in the .env file');
         }
         // Load repositories and categories from projects.csv
-        const projectsFilePath = path.join(process.cwd(), 'projects.csv');
+        const projectsFilePath = path.join(process.cwd(), 'projects2.csv');
         if (!fs.existsSync(projectsFilePath)) {
             throw new Error(`File projects.csv not found at ${projectsFilePath}`);
         }
@@ -47,12 +48,18 @@ export async function run() {
             const df = new DeployFrequency(releaseList, startDate, endDate);
             const rate = df.rate();
             console.log(`Deployment Frequency (days):`, rate);
+            // Calcular a média de deploys por mês
+            const deploysPerMonth = rate ? (30 / rate).toFixed(0) : 'null';
+            console.log(`Deployment Frequency (deploy/month):`, deploysPerMonth);
+            // Avaliar a classificação do DF
+            const dfClassification = DORAMetricsEvaluator.evaluateDeploymentFrequency(rate);
+            console.log(`Deployment Frequency (level): ${dfClassification}`);
             // Add to results
-            results.push({ repository, category, df: rate });
+            results.push({ repository, category, df: rate, classification: dfClassification });
         }
         // Generate the CSV
-        const csvContent = 'Repository,Category,Deployment Frequency (DF)\n' +
-            results.map(r => `${r.repository},${r.category},${r.df}`).join('\n');
+        const csvContent = 'Repository,Category,Deployment Frequency (DF),DF Level\n' +
+            results.map(r => `${r.repository},${r.category},${r.df},${r.classification}`).join('\n');
         const outputPath = path.join(process.cwd(), 'df_metrics.csv');
         fs.writeFileSync(outputPath, csvContent);
         console.log(`CSV generated at: ${outputPath}`);

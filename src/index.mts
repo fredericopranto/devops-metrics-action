@@ -4,6 +4,7 @@ import fetch from 'node-fetch';
 import { Octokit } from '@octokit/rest';
 import { ReleaseAdapter } from './ReleaseAdapter.js';
 import { DeployFrequency } from './DeployFrequency.js';
+import { DORAMetricsEvaluator } from './DORAMetricsEvaluator.js';
 import fs from 'fs';
 import path from 'path';
 
@@ -20,7 +21,7 @@ export async function run(): Promise<void> {
     }
 
     // Load repositories and categories from projects.csv
-    const projectsFilePath = path.join(process.cwd(), 'projects.csv');
+    const projectsFilePath = path.join(process.cwd(), 'projects2.csv');
     if (!fs.existsSync(projectsFilePath)) {
       throw new Error(`File projects.csv not found at ${projectsFilePath}`);
     }
@@ -45,7 +46,7 @@ export async function run(): Promise<void> {
       request: { fetch },
     });
 
-    const results: { repository: string; category: string; df: number | null }[] = [];
+    const results: { repository: string; category: string; df: number | null; classification: string }[] = [];
 
     for (const { repository, category } of repositories) {
       console.log(`>>>> Processing repository: ${repository} (Category: ${category})`);
@@ -59,14 +60,22 @@ export async function run(): Promise<void> {
       const rate = df.rate();
       console.log(`Deployment Frequency (days):`, rate);
 
+      // Calcular a média de deploys por mês
+      const deploysPerMonth = rate ? (30 / rate).toFixed(0) : 'null';
+      console.log(`Deployment Frequency (deploy/month):`, deploysPerMonth);
+
+      // Avaliar a classificação do DF
+      const dfClassification = DORAMetricsEvaluator.evaluateDeploymentFrequency(rate);
+      console.log(`Deployment Frequency (level): ${dfClassification}`);
+
       // Add to results
-      results.push({ repository, category, df: rate });
+      results.push({ repository, category, df: rate, classification: dfClassification });
     }
 
     // Generate the CSV
     const csvContent =
-      'Repository,Category,Deployment Frequency (DF)\n' +
-      results.map(r => `${r.repository},${r.category},${r.df}`).join('\n');
+      'Repository,Category,Deployment Frequency (DF),DF Level\n' +
+      results.map(r => `${r.repository},${r.category},${r.df},${r.classification}`).join('\n');
     const outputPath = path.join(process.cwd(), 'df_metrics.csv');
     fs.writeFileSync(outputPath, csvContent);
 
