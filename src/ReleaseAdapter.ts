@@ -7,16 +7,14 @@ export class ReleaseAdapter implements IReleaseAdapter {
   octokit: Octokit;
   owner: string;
   repo: string;
-  today: Date;
 
   constructor(octokit: Octokit, owner: string, repo: string) {
     this.octokit = octokit;
     this.owner = owner;
     this.repo = repo;
-    this.today = new Date();
   }
 
-  async GetAllReleases(since?: Date, until?: Date): Promise<Release[]> {
+  async GetAllReleases(since: Date | null, until: Date | null): Promise<Release[]> {
     try {
       let result: Release[] = [];
       let page = 1;

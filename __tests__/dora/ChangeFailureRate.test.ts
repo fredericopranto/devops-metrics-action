@@ -8,14 +8,10 @@ describe('ChangeFailureRate should', () => {
   it('return 1 bug issues', () => {
     const bugs = [
       {
-        created_at: '2025-01-02T10:00:00Z',
-        labels: [{name: 'bug'}],
-        repository_url: 'https://api.github.com/repos/fredericopranto/mock'
+        labels: [{name: 'bug'}]
       },
       {
-        created_at: '2025-01-02T10:00:00Z',
-        labels: [{name: 'feature'}],
-        repository_url: 'https://api.github.com/repos/fredericopranto/mock'
+        labels: [{name: 'feature'}]
       }
     ] as Issue[]
 
@@ -27,12 +23,26 @@ describe('ChangeFailureRate should', () => {
   it('return all bug issues with all BUG_LABEL', () => {
     const bugLabels = (process.env.BUG_LABEL || '').split(',').map(label => label.trim());
     const bugs = bugLabels.map(label => ({
-      created_at: '2025-01-02T10:00:00Z',
       labels: [{ name: label }] })) as Issue[];
     const releases = [] as Release[];
 
     const value = new ChangeFailureRate(bugs, releases).getBugs().length;
     expect(value).toBe(bugLabels.length);
+  })
+  it('calculate   null on release without date', () => {
+    const bugs = [
+      {
+        labels: [{name: 'bug'}]
+      }
+    ] as Issue[]
+    const releases = [
+      {
+        "id": 101411508
+      }
+    ] as Release[]
+
+    const value = new ChangeFailureRate(bugs, releases).Cfr()
+    expect(value).toBe(null)
   })
   it('calculate   0% failures on on 0 bug and 0 release', () => {
     const bugs: Issue[] = []
@@ -41,9 +51,24 @@ describe('ChangeFailureRate should', () => {
     const value = new ChangeFailureRate(bugs, releases).Cfr()
     expect(value).toBe(0)
   })
-  it('calculate   0% failures on on 1 bug and 0 release', () => {
-    const bugs: Issue[] = []
+  it('calculate   null on on 1 bug and 0 release', () => {
+    const bugs = [
+      {
+        labels: [{name: 'bug'}]
+      }
+    ] as Issue[]
     const releases: Release[] = []
+
+    const value = new ChangeFailureRate(bugs, releases).Cfr()
+    expect(value).toBe(null)
+  })
+  it('calculate   0% failures on on 0 bug and 1 release', () => {
+    const bugs: Issue[] = []
+    const releases = [
+      {
+        published_at: '2025-01-01T10:00:00Z'
+      }
+    ] as Release[]
 
     const value = new ChangeFailureRate(bugs, releases).Cfr()
     expect(value).toBe(0)
@@ -58,8 +83,7 @@ describe('ChangeFailureRate should', () => {
 
     const releases = [
       {
-        published_at: '2025-01-01T10:00:00Z',
-        url: 'https://api.github.com/repos/fredericopranto/mock/releases/id'
+        published_at: '2025-01-01T10:00:00Z'
       }
     ] as Release[]
 
@@ -83,12 +107,10 @@ describe('ChangeFailureRate should', () => {
 
     const releases = [
       {
-        published_at: '2025-01-01T10:00:00Z',
-        url: 'https://api.github.com/repos/fredericopranto/mock/releases/id',  
+        published_at: '2025-01-01T10:00:00Z'
       },
       {
-        published_at: '2025-01-02T10:00:00Z',
-        url: 'https://api.github.com/repos/fredericopranto/mock/releases/id',  
+        published_at: '2025-01-02T10:00:00Z'
       }
     ] as Release[]
 
@@ -112,8 +134,7 @@ describe('ChangeFailureRate should', () => {
 
     const releases = [
       {
-        published_at: '2025-01-02T10:00:00Z',
-        url: 'https://api.github.com/repos/fredericopranto/mock/releases/id',        
+        published_at: '2025-01-02T10:00:00Z'
       }
     ] as Release[]
 
@@ -134,12 +155,10 @@ describe('ChangeFailureRate should', () => {
 
     const releases = [
       {
-        published_at: '2025-01-02T10:00:00Z',
-        url: 'https://api.github.com/repos/fredericopranto/mock/releases/id',        
+        published_at: '2025-01-02T10:00:00Z'
       },
       {
-        published_at: '2025-01-03T10:00:00Z',
-        url: 'https://api.github.com/repos/fredericopranto/mock/releases/id',        
+        published_at: '2025-01-03T10:00:00Z'
       }
 
     ] as Release[]
@@ -161,12 +180,10 @@ describe('ChangeFailureRate should', () => {
 
     const releases = [
       {
-        published_at: '2025-01-01T10:00:00Z',
-        url: 'https://api.github.com/repos/fredericopranto/mock/releases/id',  
+        published_at: '2025-01-01T10:00:00Z'
       },
       {
-        published_at: '2025-01-03T10:00:00Z',
-        url: 'https://api.github.com/repos/fredericopranto/mock/releases/id',  
+        published_at: '2025-01-03T10:00:00Z'
       }
     ] as Release[]
 
@@ -190,12 +207,10 @@ describe('ChangeFailureRate should', () => {
 
     const releases = [
       {
-        published_at: '2025-01-01T10:00:00Z',
-        url: 'https://api.github.com/repos/fredericopranto/mock/releases/id',  
+        published_at: '2025-01-01T10:00:00Z'
       },
       {
-        published_at: '2025-01-02T10:00:00Z',
-        url: 'https://api.github.com/repos/fredericopranto/mock/releases/id',  
+        published_at: '2025-01-02T10:00:00Z'
       }
     ] as Release[]
 
@@ -227,16 +242,13 @@ describe('ChangeFailureRate should', () => {
 
     const releases = [
       {
-        published_at: '2025-01-03T10:00:00Z',
-        url: 'https://api.github.com/repos/fredericopranto/mock/releases/id',  
+        published_at: '2025-01-03T10:00:00Z'
       },
       {
-        published_at: '2025-03-03T10:00:00Z',
-        url: 'https://api.github.com/repos/fredericopranto/mock/releases/id',  
+        published_at: '2025-03-03T10:00:00Z'
       },
       {
-        published_at: '2025-03-03T10:00:00Z',
-        url: 'https://api.github.com/repos/fredericopranto/mock/releases/id',  
+        published_at: '2025-03-03T10:00:00Z'
       }
     ] as Release[]
 
@@ -254,37 +266,30 @@ describe('ChangeFailureRate should', () => {
     const bugs = [
       {
         created_at: '2025-02-02T10:00:00Z',
-        labels: [{name: 'bug'}],
-        repository_url: 'https://api.github.com/repos/fredericopranto/mock'
+        labels: [{name: 'bug'}]
       },
       {
         created_at: '2025-02-02T10:00:00Z',
-        labels: [{name: 'bug'}],
-        repository_url: 'https://api.github.com/repos/fredericopranto/mock'
+        labels: [{name: 'bug'}]
       },
       {
         created_at: '2025-02-02T10:00:00Z',
-        labels: [{name: 'bug'}],
-        repository_url: 'https://api.github.com/repos/fredericopranto/mock'
+        labels: [{name: 'bug'}]
       }
     ] as Issue[]
 
     const releases = [
       {
-        published_at: '2025-01-03T10:00:00Z',
-        url: 'https://api.github.com/repos/fredericopranto/mock/releases/id',  
+        published_at: '2025-01-03T10:00:00Z'
       },
       {
-        published_at: '2025-03-03T10:00:00Z',
-        url: 'https://api.github.com/repos/fredericopranto/mock/releases/id',  
+        published_at: '2025-03-03T10:00:00Z'
       },
       {
-        published_at: '2025-03-03T10:00:00Z',
-        url: 'https://api.github.com/repos/fredericopranto/mock/releases/id',  
+        published_at: '2025-03-03T10:00:00Z'
       },
       {
-        published_at: '2025-03-04T10:00:00Z',
-        url: 'https://api.github.com/repos/fredericopranto/mock/releases/id',  
+        published_at: '2025-03-04T10:00:00Z'
       }
     ] as Release[]
 

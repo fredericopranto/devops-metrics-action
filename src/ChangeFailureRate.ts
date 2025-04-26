@@ -22,16 +22,24 @@ export class ChangeFailureRate {
     );
   }
 
-  Cfr(): number {
-    if (this.issues.length === 0 || this.releases.length === 0) {
+  Cfr(): number | null {
+    if (this.issues.length === 0) {
       return 0;
+    }
+
+    if (this.releases.length === 0) {
+      return null;
+    }
+
+    const validReleases = this.releases.filter(release => release.published_at || release.created_at);
+    if (validReleases.length === 0) {
+      return null;
     }
 
     const bugs = this.getBugs();
 
-    const releaseDates = this.releases.map(release => ({
-      published: +new Date(release.published_at),
-      url: release.url,
+    const releaseDates = validReleases.map(release => ({
+      published: +new Date(release.published_at || release.created_at)
     }));
 
     let failedDeploys = 0;

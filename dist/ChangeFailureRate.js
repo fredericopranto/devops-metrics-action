@@ -12,17 +12,18 @@ export class ChangeFailureRate {
         return this.issues.filter(issue => issue.labels.some(label => bugLabels.includes(label.name)));
     }
     Cfr() {
-        if (this.issues.length === 0 || this.releases.length === 0) {
+        if (this.issues.length === 0) {
             return 0;
         }
+        if (this.releases.length === 0) {
+            throw new Error('Empty release list');
+        }
         const bugs = this.getBugs();
-        // Mapear datas de releases
         const releaseDates = this.releases.map(release => ({
             published: +new Date(release.published_at),
             url: release.url,
         }));
         let failedDeploys = 0;
-        // Verificar bugs entre releases consecutivas
         for (let i = 0; i < releaseDates.length - 1; i++) {
             const bugsInRange = bugs.filter(bug => {
                 const bugDate = +new Date(bug.created_at);
@@ -33,13 +34,12 @@ export class ChangeFailureRate {
                 failedDeploys += 1;
             }
         }
-        // Verificar bugs após a última release
         const bugsAfterLastRelease = bugs.filter(bug => {
             const bugDate = +new Date(bug.created_at);
             return bugDate > releaseDates[releaseDates.length - 1].published;
         });
         if (bugsAfterLastRelease.length > 0) {
-            failedDeploys += 1; // Contabiliza falhas após a última release
+            failedDeploys += 1;
         }
         return Math.round((failedDeploys / releaseDates.length) * 100);
     }

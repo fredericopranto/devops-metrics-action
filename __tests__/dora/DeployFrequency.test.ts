@@ -9,8 +9,17 @@ describe('Deploy frequency should', () => {
   const releaseList: Release[] = JSON.parse(
     fs.readFileSync('./__tests__/test-data/releases.json', 'utf-8')
   )
+  it('calculate df for 1 release', () => {
+    const releases = [
+      {
+        published_at: '2025-01-01T10:00:00Z'
+      }
+    ] as Release[]
 
-  it('calculate df of 1 release', () => {
+    const value = new DeployFrequency(releases,null, null).rate();
+    expect(value).toBe(null)
+  })
+  it('calculate df for 1 release', () => {
     const df = new DeployFrequency([releaseList[0]], new Date(2022, 0, 1), new Date(2022, 11, 31));
     const wr = df.rate()
 

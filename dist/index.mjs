@@ -34,7 +34,7 @@ export async function run() {
             const [repository, category] = line.split(',');
             return { repository: repository.trim(), category: category.trim() };
         });
-        console.log(`${repositories.length} repository(ies) loaded from projects.csv.`);
+        console.log(repositories.length, 'repository(ies) loaded from projects.csv.');
         console.log('Start Date: ' + (startDate ? startDate.toISOString() : 'Not defined'));
         console.log('End Date: ' + (endDate ? endDate.toISOString() : 'Not defined'));
         const octokit = new Octokit({
@@ -102,12 +102,12 @@ export async function run() {
             results.map(r => '${r.repository},${r.category},${r.dfValue},${r.dfLevel},${r.ltValue},${r.ltLevel},${r.cfrValue},${r.cfrLevel},${r.mttrValue},${r.mttrLevel}').join('\n');
         const outputPath = path.join(process.cwd(), 'metrics.csv');
         fs.writeFileSync(outputPath, csvContent);
-        console.log('CSV generated at: ${outputPath}');
+        console.log('CSV generated at:' + outputPath);
         const nullCsvContent = 'Repository,Category,Metric\n' +
             nullResults.map(r => '${r.repository},${r.category},${r.metric}').join('\n');
         const nullOutputPath = path.join(process.cwd(), 'null_metrics.csv');
         fs.writeFileSync(nullOutputPath, nullCsvContent);
-        console.log('Null metrics CSV generated at: ${nullOutputPath}');
+        console.log('Null metrics CSV generated at: ' + nullOutputPath);
     }
     catch (error) {
         console.error('Error running the project:', error.message);

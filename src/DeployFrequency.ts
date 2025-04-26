@@ -7,7 +7,7 @@ export class DeployFrequency {
   startDate: Date;
   endDate: Date;
 
-  constructor(releases: Release[] | null, startDate: Date | undefined, endDate: Date | undefined) {
+  constructor(releases: Release[] | null, startDate: Date | null, endDate: Date | null) {
     this.rList = releases as Release[];
     this.startDate = startDate ?? (this.rList.length > 0 ? new Date(this.rList[0].published_at) : new Date(0));
     this.endDate = endDate ?? new Date();

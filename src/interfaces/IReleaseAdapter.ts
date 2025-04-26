@@ -1,6 +1,5 @@
 import {Release} from '../types/Release.js'
 
 export interface IReleaseAdapter {
-  today: Date
-  GetAllReleases(): Promise<Release[] | undefined>
+  GetAllReleases(since: Date | null, until: Date | null): Promise<Release[]>
 }

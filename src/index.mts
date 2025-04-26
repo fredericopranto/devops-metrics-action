@@ -18,8 +18,8 @@ dotenv.config();
 export async function run(): Promise<void> {
   try {
     const token = process.env.GITHUB_TOKEN || '';
-    const startDate = process.env.START_DATE ? new Date(process.env.START_DATE) : undefined;
-    const endDate = process.env.END_DATE ? new Date(process.env.END_DATE) : undefined;
+    const startDate = process.env.START_DATE ? new Date(process.env.START_DATE) : null;
+    const endDate = process.env.END_DATE ? new Date(process.env.END_DATE) : null;
 
     if (!token) {
       throw new Error('Please configure the GITHUB_TOKEN variable in the .env file');
