@@ -2,6 +2,9 @@ import type {PullRequest} from '../../src/types/PullRequest'
 import {PullRequestsAdapter} from '../../src/PullRequestsAdapter'
 import fs from 'node:fs'
 import {Octokit} from '@octokit/rest'
+import * as dotenv from 'dotenv'
+
+dotenv.config()
 
 const token = process.env.GITHUB_TOKEN
   if (!token) {
