@@ -26,15 +26,10 @@ describe('ChangeFailureRate should', () => {
   })
   it('return all bug issues with all BUG_LABEL', () => {
     const bugLabels = (process.env.BUG_LABEL || '').split(',').map(label => label.trim());
-
-
     const bugs = bugLabels.map(label => ({
       created_at: '2025-01-02T10:00:00Z',
       labels: [{ name: label }] })) as Issue[];
-
     const releases = [] as Release[];
-
-    process.env.BUG_LABEL = bugLabels.join(',');
 
     const value = new ChangeFailureRate(bugs, releases).getBugs().length;
     expect(value).toBe(bugLabels.length);
