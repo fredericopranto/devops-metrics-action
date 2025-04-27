@@ -30,8 +30,9 @@ export class LeadTime {
         const mergeTime = +new Date(pull.merged_at);
 
         const laterReleases = this.releases.filter(
-          (r) => +new Date(r.published_at || r.created_at) > mergeTime && r.url.includes(pull.base.repo.name)
+          (r) => +new Date(r.published_at || r.created_at) > mergeTime
         );
+
         if (laterReleases.length === 0) {
           continue;
         }
@@ -52,8 +53,7 @@ export class LeadTime {
     }
 
     const averageLeadTime =
-      Math.round((leadTimes.reduce((p, c) => p + c) / leadTimes.length) * 100) /
-      100;
+      Math.round((leadTimes.reduce((p, c) => p + c) / leadTimes.length) * 100) / 100;
     return averageLeadTime;
   }
 }

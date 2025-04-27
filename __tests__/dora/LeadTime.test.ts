@@ -4,8 +4,8 @@ import {LeadTime} from '../../src/LeadTime'
 import {expect} from '@jest/globals'
 import { Commit } from '../../src/types/Commit'
 
-describe('LeadTime should', () => {
-  it('return null on no pr', () => {
+describe('LeadTime ', () => {
+  it('should return null when there are no pull requests', () => {
     const pulls = [] as PullRequest[]
     const releases = [
       {
@@ -16,7 +16,8 @@ describe('LeadTime should', () => {
     const value = new LeadTime(pulls,releases).getLeadTime();
     expect(value).toBe(null);
   })
-  it('return null on no releases', () => {
+
+  it('should return null when there are no releases', () => {
     const pulls = [
       {
         base: {ref: 'main'},
@@ -28,7 +29,7 @@ describe('LeadTime should', () => {
     expect(value).toBe(null);
   })
 
-  it('return null on no closed pr', () => {
+  it('should return null when there are no merged pull requests', () => {
     const pulls = [
       {
         merged_at: ''
@@ -42,7 +43,8 @@ describe('LeadTime should', () => {
     const value = new LeadTime(pulls, releases).getLeadTime();
     expect(value).toBe(null)
   })
-  it('return null on no pr with base.ref default', () => {
+
+  it('should return null when no pull request targets the default branch', () => {
     const pulls = [
       {
         base: {
@@ -58,7 +60,8 @@ describe('LeadTime should', () => {
     const value = new LeadTime(pulls, releases).getLeadTime();
     expect(value).toBe(null)
   })
-  it('return null on 1 pr with no commits', () => {
+
+  it('should return null when a pull request has no commits', () => {
     const pulls = [
       {
         base: {ref: 'main'},
@@ -72,7 +75,60 @@ describe('LeadTime should', () => {
     const value = new LeadTime(pulls, releases).getLeadTime();
     expect(value).toBe(null);
   })
-  it('return 8 on pull-requests with base.ref = main', () => {
+
+  it('should return null when the release occurs before the pull request is merged', () => {
+    const commits = [
+      {
+        commit: {
+          committer: {
+            date: '2025-01-01T15:00:00Z'
+          }
+        }
+      } 
+    ] as Commit[];  
+    const pulls = [
+      {
+        merged_at: '2025-01-01T20:00:00Z',
+        base: {ref: 'main', repo: {name: 'dora'}}, 
+        commits: commits
+      }
+    ] as PullRequest[]
+    const releases = [
+      {
+        published_at: '2025-01-01T10:00:00Z'
+      }
+    ] as Release[];
+    const value = new LeadTime(pulls, releases).getLeadTime();
+    expect(value).toBe(null)
+  })
+
+  it('should return null when the pull request is merged before the release, but the commit occurs after the release', () => {
+    const commits = [
+      {
+        commit: {
+          committer: {
+            date: '2025-01-02T15:00:00Z'
+          }
+        }
+      } 
+    ] as Commit[];  
+    const pulls = [
+      {
+        merged_at: '2025-01-01T20:00:00Z',
+        base: {ref: 'main', repo: {name: 'dora'}}, 
+        commits: commits
+      }
+    ] as PullRequest[]
+    const releases = [
+      {
+        published_at: '2025-01-01T10:00:00Z'
+      }
+    ] as Release[];
+    const value = new LeadTime(pulls, releases).getLeadTime();
+    expect(value).toBe(null)
+  })
+
+  it('should return a Lead Time of 1 day when the commit occurs 1 day before the release', () => {
     const commits = [
       {
         commit: {
@@ -84,14 +140,14 @@ describe('LeadTime should', () => {
     ] as Commit[];  
     const pulls = [
       {
-        merged_at: '2025-01-01T10:00:00Z',
+        merged_at: '2025-01-01T15:00:00Z',
         base: {ref: 'main', repo: {name: 'dora'}}, 
         commits: commits
       }
     ] as PullRequest[]
     const releases = [
       {
-        published_at: '2025-01-01T10:00:00Z'
+        published_at: '2025-01-02T10:00:00Z'
       }
     ] as Release[];
     const value = new LeadTime(pulls, releases).getLeadTime();
