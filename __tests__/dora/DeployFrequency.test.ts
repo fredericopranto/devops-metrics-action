@@ -1,10 +1,16 @@
 import {DeployFrequency} from '../../src/DeployFrequency'
-import fs from 'fs'
 import {Release} from '../../src/types/Release'
 import { addTime, TimeUnit } from '../../src/utils/DateUtils';
 
 describe('Deploy frequency should', () => {
   const dayOne = new Date(2025, 0, 1)
+  it('calculate total days between two dates', () => {
+    const releases = [] as Release[];
+    
+    expect(new DeployFrequency(releases, dayOne, dayOne).getTotalDays()).toBe(1);
+    expect(new DeployFrequency(releases, dayOne, addTime(dayOne, 1, TimeUnit.Day)).getTotalDays()).toBe(2);
+    expect(new DeployFrequency(releases, dayOne, addTime(dayOne, 2, TimeUnit.Day)).getTotalDays()).toBe(3);
+  })
   it('calculate df for 2 releases away from interval', () => {
     const releases = [
       { published_at: '2024-12-31T10:00:00Z' },

@@ -40,13 +40,12 @@ export class ReleaseAdapter {
                     return false;
                 return true;
             });
-            //console.log('Rate Limit:', await this.octokit.request('GET /rate_limit'))
             if (filteredReleases.length > 0) {
                 const sortedReleases = filteredReleases.sort((a, b) => new Date(a.published_at || a.created_at).getTime() - new Date(b.published_at || a.created_at).getTime());
                 const firstRelease = sortedReleases[0];
                 const lastRelease = sortedReleases[sortedReleases.length - 1];
-                console.log(`First evaluated release: ${firstRelease.published_at || firstRelease.created_at}`);
-                console.log(`Last evaluated release: ${lastRelease.published_at || lastRelease.created_at}`);
+                //console.log(`First evaluated release: ${firstRelease.published_at || firstRelease.created_at}`);
+                //console.log(`Last evaluated release: ${lastRelease.published_at || lastRelease.created_at}`);
             }
             return filteredReleases;
         }

@@ -91,10 +91,14 @@ export async function run(): Promise<void> {
       const df = new DeployFrequency(releases, startDate, endDate);
       const dfDays = df.rate();
       if (dfDays === null) { nullResults.push({ repository, category, metric: 'df' }); continue; }
-      const dfValue = dfDays ? (30 / dfDays).toFixed(2) : 'null';
+      const dfValueDay = dfDays ? (1 / dfDays).toFixed(2) : 'null';
+      const dfValueWeek = dfDays ? (7 / dfDays).toFixed(2) : 'null';
+      const dfValueMonth = dfDays ? (30 / dfDays).toFixed(2) : 'null';
       const dfLevel = DORAMetricsEvaluator.evaluateDeploymentFrequency(dfDays);
       console.log('Deployment Frequency (days):', dfDays);
-      console.log('Deployment Frequency (deploy/month):', dfValue);
+      console.log('Deployment Frequency (release/day):', dfValueDay);
+      console.log('Deployment Frequency (release/week):', dfValueWeek);
+      console.log('Deployment Frequency (release/month):', dfValueMonth);
       console.log('Deployment Frequency (level):', dfLevel);
 
       // Lead Time
@@ -121,7 +125,7 @@ export async function run(): Promise<void> {
 
       results.push({
         repository, category,
-        dfValue, dfLevel,
+        dfValue: dfValueDay, dfLevel,
         ltValue: ltValue.toFixed(2), ltLevel,
         cfrValue, cfrLevel,
         mttrValue, mttrLevel,

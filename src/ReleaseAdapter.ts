@@ -59,8 +59,9 @@ export class ReleaseAdapter implements IReleaseAdapter {
         );
         const firstRelease = sortedReleases[0];
         const lastRelease = sortedReleases[sortedReleases.length - 1];
-        console.log(`First evaluated release: ${firstRelease.published_at || firstRelease.created_at}`);
-        console.log(`Last evaluated release: ${lastRelease.published_at || lastRelease.created_at}`);
+        
+        //console.log(`First evaluated release: ${firstRelease.published_at || firstRelease.created_at}`);
+        //console.log(`Last evaluated release: ${lastRelease.published_at || lastRelease.created_at}`);
       }
 
       return filteredReleases;

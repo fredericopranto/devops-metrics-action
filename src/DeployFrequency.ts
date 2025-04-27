@@ -29,7 +29,7 @@ export class DeployFrequency {
       : (this.releases.length > 0
           ? new Date(new Date(this.releases[0].published_at || this.releases[0].created_at).toISOString().split('T')[0])
           : new Date(0));
-          
+
     this.endDate = endDate
       ? new Date(endDate.toISOString().split('T')[0])
       : new Date(new Date().toISOString().split('T')[0]);
@@ -65,7 +65,7 @@ export class DeployFrequency {
     return parseFloat(average.toFixed(2));
   }
 
-  private getTotalDays(): number {
+  getTotalDays(): number {
     const startDateWithoutTime = new Date(this.startDate!.toISOString().split('T')[0]);
     const endDateWithoutTime = new Date(this.endDate!.toISOString().split('T')[0]);
 

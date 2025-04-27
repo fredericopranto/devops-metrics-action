@@ -1,6 +1,5 @@
 import { PullRequest } from './types/PullRequest.js';
 import { Release } from './types/Release.js';
-import { Commit } from './types/Commit.js';
 
 const ONE_DAY = 24 * 60 * 60 * 1000;
 
@@ -13,7 +12,8 @@ export class LeadTime {
     this.releases = releases;
   }
 
-  async getLeadTime(): Promise<number | null>{
+  getLeadTime(): number | null {
+    console.log(this.pulls.length, this.releases.length);
     if (this.pulls.length === 0 || this.releases.length === 0) {
       return null;
     }
@@ -25,7 +25,7 @@ export class LeadTime {
       if (
         typeof pull.merged_at === 'string' && pull.merged_at &&
         typeof pull.base.repo.name === 'string' && pull.base.repo.name &&
-        pull.base.ref === pull.default_branch)
+        pull.base.ref === pull.default_branch || 'main')
       {
         const mergeTime = +new Date(pull.merged_at);
 
