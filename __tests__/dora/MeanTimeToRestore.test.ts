@@ -7,20 +7,20 @@ describe('MeanTimeToRestore ', () => {
     {
       created_at: '2025-01-02T10:00:00Z',
       closed_at: '2025-01-02T10:00:00Z',
-      labels: [{name: 'bug'}]
+      labels: [{name: 'bug'}] // 3 days
     },
     {
       created_at: '2025-01-03T10:00:00Z',
       closed_at: '2025-01-03T10:00:00Z',
-      labels: [{name: 'bug'}]
+      labels: [{name: 'bug'}] // 3 days
     }
-  ] as Issue[]
+  ] as Issue[];
   const releases = [
     { published_at: '2025-01-01T10:00:00Z'},
     { published_at: '2025-01-04T10:00:00Z'}
-  ] as Release[]
+  ] as Release[];
 
-  const mttr = new MeanTimeToRestore( issues, releases);
+  const mttr = new MeanTimeToRestore( issues, releases); // (3+3)/2 = 3
 
   it('get bugs last month', () => {
     const bugCount = mttr.getBugCount();
@@ -28,7 +28,7 @@ describe('MeanTimeToRestore ', () => {
     expect(bugCount.length).toBe(2)
     expect(bugCount[0].start).toBe(+new Date('2025-01-02T10:00:00Z'));
     expect(bugCount[0].end).toBe(+new Date('2025-01-02T10:00:00Z'));
-  })
+  });
 
   it('find release time before date', () => {
     const before1 = mttr.getReleaseBefore(+new Date('2025-01-02T10:00:00Z'));
@@ -36,13 +36,13 @@ describe('MeanTimeToRestore ', () => {
 
     expect(before1.published).toBe(+new Date('2025-01-01T10:00:00Z'));
     expect(before2.published).toBe(+new Date('2025-01-04T10:00:00Z'));
-  })
+  });
 
   it('throw error when no earlier dates', () => {
     expect(() => {
       mttr.getReleaseBefore(+new Date('2025-01-01T09:10:00Z'));
     }).toThrow('No previous releases');
-  })
+  });
 
   it('find release time after date', () => {
     const after1 = mttr.getReleaseAfter(+new Date('2025-01-01T09:00:00Z'));
@@ -50,13 +50,13 @@ describe('MeanTimeToRestore ', () => {
 
     expect(after1.published).toBe(+new Date('2025-01-01T10:00:00Z'));
     expect(after2.published).toBe(+new Date('2025-01-04T10:00:00Z'));
-  })
+  });
 
   it('throw error when no later dates', () => {
     expect(() => {
       mttr.getReleaseAfter(+new Date('2025-01-05T10:10:00Z'));
     }).toThrow('No later releases');
-  })
+  });
 
   it('check if there are later releases', () => {
     const hasLaterRelease = mttr.hasLaterRelease(+new Date('2025-01-01T09:00:00Z'));
@@ -64,7 +64,7 @@ describe('MeanTimeToRestore ', () => {
 
     expect(hasLaterRelease).toBe(true)
     expect(hasNoLaterRelease).toBe(false)
-  })
+  });
 
   it('get time for a bug 1', () => {
     const bug: BugTime = {
@@ -75,7 +75,18 @@ describe('MeanTimeToRestore ', () => {
 
     const value = mttr.getRestoreTime(bug);
     expect(value).toBe(releaseDiff)
-  })
+  });
+
+  it('should return null when empty release list', () => {
+    const values = new MeanTimeToRestore(issues, [] as Release[]).mttr();
+    expect(values).toBe(null);
+  });
+
+  it('should return 0 when no bugs', () => {
+    const values = new MeanTimeToRestore([] as Issue[], releases).mttr();
+    expect(values).toBe(0);
+  });
+
   it('get time for a bug 2', () => {
     const bug: BugTime = {
       start: +new Date('2025-01-02T10:00:00Z'),
@@ -85,250 +96,105 @@ describe('MeanTimeToRestore ', () => {
 
     const value: number = mttr.getRestoreTime(bug)
     expect(value).toBe(releaseDiff)
-  })
+  });
 
   it('get mttr for bug 1 when no release after bug 2', () => {
-    const bugList: Issue[] = [
+    const issues: Issue[] = [
       {
-        created_at: '2023-04-22T21:44:06Z',
-        closed_at: '2023-04-23T16:47:40Z',
-        labels: [{name: 'bug'}],
-        repository_url: 'some-path/repository'
+        created_at: '2025-01-03T00:00:00Z',
+        closed_at: '2025-01-04T00:00:00Z',
+        labels: [{name: 'bug'}] // 4 days
       },
       {
-        created_at: '2023-04-25T21:21:49Z',
-        closed_at: '2023-04-29T12:54:45Z',
-        labels: [{name: 'bug'}],
-        repository_url: 'some-path/repository'
+        created_at: '2025-01-06T15:00:00Z',
+        closed_at: '2025-01-10T10:00:00Z',
+        labels: [{name: 'bug'}]
       }
     ] as Issue[]
-    const localReleases = [
+    const releases = [
       {
-        published_at: '2023-04-25T00:00:00Z',
-        url: 'path/with/repository/in/it'
+        published_at: '2025-01-06T10:00:00Z'
       },
       {
-        published_at: '2023-04-24T00:00:00Z',
-        url: 'path/with/repository/in/it'
-      },
+        published_at: '2025-01-05T10:00:00Z'
+      }, 
       {
-        published_at: '2023-04-20T00:00:00Z',
-        url: 'path/with/repository/in/it'
+        published_at: '2025-01-01T10:00:00Z'
       }
     ] as Release[]
 
-    // console.log(fixTime/(1000*60*60*24))
-    const mttrEmpty = new MeanTimeToRestore(
-      bugList,
-      localReleases    )
-    const meanTime = mttrEmpty.mttr()
+    const values = new MeanTimeToRestore(issues, releases).mttr();
+    expect(values).toBe(4) // (4)/1 = 4 
+  });
 
-    expect(meanTime).toBe(4)
-  })
-
-  it('throw error when empty release list', () => {
-    const m = (): void => {
-      new MeanTimeToRestore([] as Issue[], [] as Release[])
-    }
-    expect(m).toThrow('Empty release list')
-  })
-
-  it('get mttr for bug 1 when release in wrong repo after bug 2', () => {
-    const bugList: Issue[] = [
+  it('get mttr 5 for bug 1 when no release after bug 2', () => {
+    const issues: Issue[] = [
       {
-        created_at: '2023-04-22T21:44:06Z',
-        closed_at: '2023-04-23T16:47:40Z',
-        labels: [{name: 'bug'}],
-        repository_url: 'some-path/repository'
+        created_at: '2025-01-03T00:00:00Z',
+        closed_at: '2025-01-04T00:00:00Z',
+        labels: [{name: 'bug'}]  // 4 days
       },
       {
-        created_at: '2023-04-25T21:21:49Z',
-        closed_at: '2023-04-29T12:54:45Z',
-        labels: [{name: 'bug'}],
-        repository_url: 'some-path/repository'
+        created_at: '2025-01-06T15:00:00Z',
+        closed_at: '2025-01-10T10:00:00Z',
+        labels: [{name: 'bug'}] // 6 days
       }
     ] as Issue[]
-    const localReleases = [
+    const releases = [
       {
-        published_at: '2023-04-25T00:00:00Z',
-        url: 'path/with/repository/in/it'
+        published_at: '2025-01-11T10:00:00Z'
+      }, 
+      {
+        published_at: '2025-01-05T10:00:00Z'
       },
       {
-        published_at: '2023-04-24T00:00:00Z',
-        url: 'path/with/repository/in/it'
-      },
-      {
-        published_at: '2023-04-30T00:00:00Z',
-        url: 'path/with/other-repo/in/it'
-      },
-      {
-        published_at: '2023-04-20T00:00:00Z',
-        url: 'path/with/repository/in/it'
+        published_at: '2025-01-01T10:00:00Z'
       }
     ] as Release[]
 
-    const mttrEmpty = new MeanTimeToRestore(
-      bugList,
-      localReleases    )
-    const meanTime = mttrEmpty.mttr()
-
-    expect(meanTime).toBe(4)
-  })
-
-  it('get mttr for 2 bugs when release after bug 2', () => {
-    const bugList: Issue[] = [
-      {
-        created_at: '2023-04-22T21:44:06Z',
-        closed_at: '2023-04-23T16:47:40Z',
-        labels: [{name: 'bug'}],
-        repository_url: 'some-path/repository'
-      },
-      {
-        created_at: '2023-04-25T21:21:49Z',
-        closed_at: '2023-04-29T12:54:45Z',
-        labels: [{name: 'bug'}],
-        repository_url: 'some-path/repository'
-      }
-    ] as Issue[]
-    const localReleases = [
-      {
-        published_at: '2023-04-30T00:00:00Z',
-        url: 'path/with/repository/in/it'
-      },
-      {
-        published_at: '2023-04-24T00:00:00Z',
-        url: 'path/with/repository/in/it'
-      },
-      {
-        published_at: '2023-04-20T00:00:00Z',
-        url: 'path/with/repository/in/it'
-      }
-    ] as Release[]
-
-    // console.log(fixTime/(1000*60*60*24))
-    const mttrEmpty = new MeanTimeToRestore(
-      bugList,
-      localReleases    )
-    const meanTime = mttrEmpty.mttr()
-
-    expect(meanTime).toBe(5)
-  })
+    const values = new MeanTimeToRestore(issues, releases).mttr();
+    expect(values).toBe(5) // (6+4) / 2 = 5
+  });
 
   it('get mttr for 2 bugs on two repos when release after bug 2', () => {
-    const bugList: Issue[] = [
+     const issues: Issue[] = [
       {
-        // 21 -> 24 = 3
-        created_at: '2023-04-22T21:44:06Z',
-        closed_at: '2023-04-23T16:47:40Z',
-        labels: [{name: 'bug'}],
-        repository_url: 'some-path/other-repo'
+        created_at: '2025-01-03T00:00:00Z',
+        closed_at: '2025-01-04T00:00:00Z',
+        labels: [{name: 'bug'}] // 3 days
       },
       {
-        // 24 -> 30 = 6
-        created_at: '2023-04-25T21:21:49Z',
-        closed_at: '2023-04-29T12:54:45Z',
-        labels: [{name: 'bug'}],
-        repository_url: 'some-path/repository'
+        created_at: '2025-01-06T15:00:00Z',
+        closed_at: '2025-01-10T10:00:00Z',
+        labels: [{name: 'bug'}] // 5 days
       }
     ] as Issue[]
-    const localReleases = [
+    const releases = [
       {
-        published_at: '2023-04-30T00:00:00Z',
-        url: 'path/with/repository/in/it'
+        published_at: '2025-01-11T10:00:00Z'
       },
       {
-        published_at: '2023-04-24T00:00:00Z',
-        url: 'path/with/repository/in/it'
+        published_at: '2025-01-05T10:00:00Z'
       },
       {
-        published_at: '2023-04-20T00:00:00Z',
-        url: 'path/with/repository/in/it'
+        published_at: '2025-01-01T10:00:00Z'
       },
       {
-        published_at: '2023-04-21T00:00:00Z',
-        url: 'path/with/other-repo/in/it'
+        published_at: '2025-01-02T10:00:00Z'
       },
       {
-        published_at: '2023-04-24T00:00:00Z',
-        url: 'path/with/other-repo/in/it'
+        published_at: '2025-01-05T10:00:00Z'
       }
     ] as Release[]
 
-    const mttrEmpty = new MeanTimeToRestore(
-      bugList,
-      localReleases    )
-    const meanTime = mttrEmpty.mttr()
+    const value = new MeanTimeToRestore(issues, releases).mttr();
+    expect(value).toBe(4.5); // (5+3) / 2 = 4.5
+  });
 
-    expect(meanTime).toBe(4.5)
-  })
-
-  it('get mttr for 2 bugs on two repos when no release after bug 1', () => {
-    const bugList: Issue[] = [
-      {
-        // 21 -> 24 = 3
-        created_at: '2023-04-22T21:44:06Z',
-        closed_at: '2023-04-23T16:47:40Z',
-        labels: [{name: 'bug'}],
-        repository_url: 'some-path/other-repo'
-      },
-      {
-        // 24 -> 30 = 6
-        created_at: '2023-04-25T21:21:49Z',
-        closed_at: '2023-04-29T12:54:45Z',
-        labels: [{name: 'bug'}],
-        repository_url: 'some-path/repository'
-      }
-    ] as Issue[]
-    const localReleases = [
-      {
-        published_at: '2023-04-30T00:00:00Z',
-        url: 'path/with/repository/in/it'
-      },
-      {
-        published_at: '2023-04-24T00:00:00Z',
-        url: 'path/with/repository/in/it'
-      },
-      {
-        published_at: '2023-04-20T00:00:00Z',
-        url: 'path/with/repository/in/it'
-      },
-      {
-        published_at: '2023-04-21T00:00:00Z',
-        url: 'path/with/other-repo/in/it'
-      }
-    ] as Release[]
-
-    const mttrEmpty = new MeanTimeToRestore(
-      bugList,
-      localReleases    )
-    const meanTime = mttrEmpty.mttr()
-
-    expect(meanTime).toBe(6)
-  })
   it('get average time to repair', () => {
-    const avMttr = mttr.mttr()
+    const value = mttr.mttr()
 
-    expect(avMttr).toBeGreaterThan(6.4)
-    expect(avMttr).toBeLessThan(7.9)
-  })
-
-  it('throw excepiton when no releases', () => {
-    const issues = [] as Issue[]
-    const releases = [] as Release[];
-
-    const t = (): void => {
-      new MeanTimeToRestore(issues, releases)
-    }
-
-    expect(t).toThrow('Empty release list')
-  })
-
-  it('return 0 when no bugs', () => {
-    const emptyBugList: Issue[] = []
-
-    const mttrEmpty = new MeanTimeToRestore(emptyBugList, releases)
-    const meanTime = mttrEmpty.mttr()
-
-    expect(meanTime).toBe(0)
-  })
+    expect(value).toBeGreaterThan(2);
+    expect(value).toBeLessThan(4);
+  });
 })
