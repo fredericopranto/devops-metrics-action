@@ -1,12 +1,17 @@
 import type {Issue} from '../../src/types/Issue'
 import type {Release} from '../../src/types/Release'
-import { type BugTime, ReleaseDate, MeanTimeToRestore} from '../../src/MeanTimeToRestore'
+import { type BugTime, MeanTimeToRestore} from '../../src/MeanTimeToRestore'
 
 describe('MeanTimeToRestore ', () => {
   const issues = [
     {
       created_at: '2025-01-02T10:00:00Z',
       closed_at: '2025-01-02T10:00:00Z',
+      labels: [{name: 'bug'}]
+    },
+    {
+      created_at: '2025-01-03T10:00:00Z',
+      closed_at: '2025-01-03T10:00:00Z',
       labels: [{name: 'bug'}]
     }
   ] as Issue[]
@@ -20,7 +25,7 @@ describe('MeanTimeToRestore ', () => {
   it('get bugs last month', () => {
     const bugCount = mttr.getBugCount();
 
-    expect(bugCount.length).toBe(1)
+    expect(bugCount.length).toBe(2)
     expect(bugCount[0].start).toBe(+new Date('2025-01-02T10:00:00Z'));
     expect(bugCount[0].end).toBe(+new Date('2025-01-02T10:00:00Z'));
   })
@@ -35,7 +40,7 @@ describe('MeanTimeToRestore ', () => {
 
   it('throw error when no earlier dates', () => {
     expect(() => {
-      mttr.getReleaseBefore(+new Date('2025-01-01T09:10:10Z'));
+      mttr.getReleaseBefore(+new Date('2025-01-01T09:10:00Z'));
     }).toThrow('No previous releases');
   })
 
@@ -48,19 +53,14 @@ describe('MeanTimeToRestore ', () => {
   })
 
   it('throw error when no later dates', () => {
-    const t = (): void => {
-      mttr.getReleaseAfter(
-        +new Date('2023-05-05T21:21:49Z')      )
-    }
-
-    expect(t).toThrow('No later releases')
+    expect(() => {
+      mttr.getReleaseAfter(+new Date('2025-01-05T10:10:00Z'));
+    }).toThrow('No later releases');
   })
 
   it('check if there are later releases', () => {
-    const hasLaterRelease: boolean = mttr.hasLaterRelease(
-      +new Date('2023-04-29T12:54:45Z')    )
-    const hasNoLaterRelease: boolean = mttr.hasLaterRelease(
-      +new Date('2023-04-30T17:29:44Z')    )
+    const hasLaterRelease = mttr.hasLaterRelease(+new Date('2025-01-01T09:00:00Z'));
+    const hasNoLaterRelease = mttr.hasLaterRelease(+new Date('2025-01-06T11:00:00Z'));
 
     expect(hasLaterRelease).toBe(true)
     expect(hasNoLaterRelease).toBe(false)
@@ -68,29 +68,23 @@ describe('MeanTimeToRestore ', () => {
 
   it('get time for a bug 1', () => {
     const bug: BugTime = {
-      start: +new Date('2023-04-22T21:44:06Z'),
-      end: +new Date('2023-04-23T16:47:40Z')    }
-    const releaseDiff =
-      +new Date('2023-04-29T06:18:36Z') - +new Date('2023-04-22T20:28:29Z')
+      start: +new Date('2025-01-01T11:00:00Z'),
+      end: +new Date('2025-01-04T09:00:00Z')    
+    }
+    const releaseDiff = +new Date('2025-01-04T10:00:00Z') - +new Date('2025-01-01T10:00:00Z')
 
-    const fixTime: number = mttr.getRestoreTime(bug)
-
-    expect(fixTime).toBe(releaseDiff)
-    // console.log(fixTime/(1000*60*60*24))
+    const value = mttr.getRestoreTime(bug);
+    expect(value).toBe(releaseDiff)
   })
   it('get time for a bug 2', () => {
     const bug: BugTime = {
-      start: +new Date('2023-04-25T21:21:49Z'),
-      end: +new Date('2023-04-29T12:54:45Z')
+      start: +new Date('2025-01-02T10:00:00Z'),
+      end: +new Date('2025-01-04T09:00:00Z') 
     }
-    const releaseDiff =
-      +new Date('2023-04-30T16:06:06Z') - +new Date('2023-04-22T20:28:29Z')
+    const releaseDiff = +new Date('2025-01-04T10:00:00Z') - +new Date('2025-01-01T10:00:00Z')
 
-    const fixTime: number = mttr.getRestoreTime(bug)
-
-    expect(fixTime).toBe(releaseDiff)
-
-    // console.log(fixTime/(1000*60*60*24))
+    const value: number = mttr.getRestoreTime(bug)
+    expect(value).toBe(releaseDiff)
   })
 
   it('get mttr for bug 1 when no release after bug 2', () => {
