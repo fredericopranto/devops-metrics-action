@@ -1,31 +1,24 @@
 import type {Issue} from '../../src/types/Issue'
 import type {Release} from '../../src/types/Release'
-import fs from 'node:fs'
-import {
-  type BugTime,
-  type ReleaseDate,
-  MeanTimeToRestore
-} from '../../src/MeanTimeToRestore'
+import { type BugTime, ReleaseDate, MeanTimeToRestore} from '../../src/MeanTimeToRestore'
 
-describe('MeanTimeToRestore should', () => {
-  const issues: Issue[] = JSON.parse(
-    fs.readFileSync('./__tests__/test-data/issues.json').toString()
-  )
-  const releases: Release[] = JSON.parse(
-    fs.readFileSync('./__tests__/test-data/releases.json').toString()
-  )
-  const mttr = new MeanTimeToRestore(
-    issues,
-    releases,
-    new Date('2023-04-30T16:50:53Z')
-  )
+describe('MeanTimeToRestore ', () => {
+  const issues = [
+    {
+      created_at: '2025-01-01T10:00:00Z',
+      closed_at: '2025-01-02T10:00:00Z',
+      labels: [{name: 'bug'}]
+    }
+  ] as Issue[]
+  const releases = [] as Release[];
+  const mttr = new MeanTimeToRestore( issues, releases);
 
   it('get bugs last month', () => {
-    const bugCount = mttr.getBugCount()
+    const bugCount = mttr.getBugCount();
 
     expect(bugCount.length).toBe(2)
-    expect(bugCount[0].start).toBe(+new Date('2023-04-25T21:21:49Z'))
-    expect(bugCount[1].end).toBe(+new Date('2023-04-23T16:47:40Z'))
+    expect(bugCount[0].start).toBe(+new Date('2025-01-01T10:00:00Z'))
+    expect(bugCount[1].end).toBe(+new Date('2025-01-02T10:00:00Z'))
   })
 
   it('find release time before date', () => {
@@ -155,9 +148,7 @@ describe('MeanTimeToRestore should', () => {
     // console.log(fixTime/(1000*60*60*24))
     const mttrEmpty = new MeanTimeToRestore(
       bugList,
-      localReleases,
-      new Date('2023-04-29T12:54:45Z')
-    )
+      localReleases    )
     const meanTime = mttrEmpty.mttr()
 
     expect(meanTime).toBe(4)
@@ -206,9 +197,7 @@ describe('MeanTimeToRestore should', () => {
 
     const mttrEmpty = new MeanTimeToRestore(
       bugList,
-      localReleases,
-      new Date('2023-04-30T00:00:00Z')
-    )
+      localReleases    )
     const meanTime = mttrEmpty.mttr()
 
     expect(meanTime).toBe(4)
@@ -247,9 +236,7 @@ describe('MeanTimeToRestore should', () => {
     // console.log(fixTime/(1000*60*60*24))
     const mttrEmpty = new MeanTimeToRestore(
       bugList,
-      localReleases,
-      new Date('2023-04-30T00:00:00Z')
-    )
+      localReleases    )
     const meanTime = mttrEmpty.mttr()
 
     expect(meanTime).toBe(5)
@@ -297,9 +284,7 @@ describe('MeanTimeToRestore should', () => {
 
     const mttrEmpty = new MeanTimeToRestore(
       bugList,
-      localReleases,
-      new Date('2023-04-30T00:00:00Z')
-    )
+      localReleases    )
     const meanTime = mttrEmpty.mttr()
 
     expect(meanTime).toBe(4.5)
@@ -343,25 +328,24 @@ describe('MeanTimeToRestore should', () => {
 
     const mttrEmpty = new MeanTimeToRestore(
       bugList,
-      localReleases,
-      new Date('2023-04-30T00:00:00Z')
-    )
+      localReleases    )
     const meanTime = mttrEmpty.mttr()
 
     expect(meanTime).toBe(6)
   })
   it('get average time to repair', () => {
-    const avMttr: number = mttr.mttr()
+    const avMttr = mttr.mttr()
 
     expect(avMttr).toBeGreaterThan(6.4)
     expect(avMttr).toBeLessThan(7.9)
   })
 
   it('throw excepiton when no releases', () => {
-    const emptyReleaseList: Release[] = []
+    const issues = [] as Issue[]
+    const releases = [] as Release[];
 
     const t = (): void => {
-      new MeanTimeToRestore(issues, emptyReleaseList)
+      new MeanTimeToRestore(issues, releases)
     }
 
     expect(t).toThrow('Empty release list')
