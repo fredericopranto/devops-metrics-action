@@ -2,7 +2,6 @@ import type {PullRequest} from '../../src/types/PullRequest'
 import type {Release} from '../../src/types/Release'
 import {LeadTime} from '../../src/LeadTime'
 import {expect} from '@jest/globals'
-import { Commit } from '../../src/types/Commit'
 
 describe('LeadTime ', () => {
   it('should return null when there are no pull requests', () => {
@@ -75,6 +74,7 @@ describe('LeadTime ', () => {
     const value = new LeadTime(pulls, releases).getLeadTime();
     expect(value).toBe(null);
   })
+
   it('should return null when the release occurs before the pull request is merged', () => {
     const pulls = [
       {
@@ -93,6 +93,7 @@ describe('LeadTime ', () => {
     const value = new LeadTime(pulls, releases).getLeadTime();
     expect(value).toBe(null)
   })
+
   it('should return null when the pull request is merged before the release, but the commit occurs after the release', () => {
     const pulls = [
       {
@@ -111,6 +112,7 @@ describe('LeadTime ', () => {
     const value = new LeadTime(pulls, releases).getLeadTime();
     expect(value).toBe(null)
   })
+  
   it('should return a Lead Time of 0 day when the release occurs at the same datetime to the commit', () => {
     const pulls = [
       {
@@ -129,6 +131,7 @@ describe('LeadTime ', () => {
     const value = new LeadTime(pulls, releases).getLeadTime();
     expect(value).toBe(0)
   })
+
   it('should return a Lead Time of 1 day when 1 commit occurs 1 day before the release', () => {
     const pulls = [
       {
@@ -147,6 +150,7 @@ describe('LeadTime ', () => {
     const value = new LeadTime(pulls, releases).getLeadTime();
     expect(value).toBe(1)
   })
+
   it('should return a Lead Time of 1 day when 5 commits occurs at lest 1 day before the release', () => {
     const pulls = [
       {
@@ -169,6 +173,7 @@ describe('LeadTime ', () => {
     const value = new LeadTime(pulls, releases).getLeadTime();
     expect(value).toBe(1)
   })
+
   it('should return a Lead Time of 6 days when 2 commits occur, each associated with 1 release', () => {
     const pulls = [
       {
@@ -193,6 +198,7 @@ describe('LeadTime ', () => {
     const value = new LeadTime(pulls, releases).getLeadTime();
     expect(value).toBe(6) // (1+11)/2
   })
+
   it('should return a Lead Time of 6,67 days when 3 commits are calculated in 3 releases', () => {
     const pulls = [
       {
@@ -225,6 +231,7 @@ describe('LeadTime ', () => {
     const value = new LeadTime(pulls, releases).getLeadTime();
     expect(value).toBe(6.67); // (11+6+3)/3
   })
+
   it('should return a Lead Time of 6 days when 3 commits are calculated in 1 release', () => {
     const pulls = [
       {
@@ -256,6 +263,7 @@ describe('LeadTime ', () => {
     const value = new LeadTime(pulls, releases).getLeadTime();
     expect(value).toBe(6); // (6)/1
   })
+
   it('should return a Lead Time of 6 days when 3 commits are calculated in 3 release', () => {
     const pulls = [
       {

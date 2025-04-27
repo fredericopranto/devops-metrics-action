@@ -6,7 +6,7 @@ export class LeadTime {
         this.pulls = pulls;
         this.releases = releases;
     }
-    async getLeadTime() {
+    getLeadTime() {
         if (this.pulls.length === 0 || this.releases.length === 0) {
             return null;
         }
@@ -14,9 +14,10 @@ export class LeadTime {
         for (const pull of this.pulls) {
             if (typeof pull.merged_at === 'string' && pull.merged_at &&
                 typeof pull.base.repo.name === 'string' && pull.base.repo.name &&
-                pull.base.ref === pull.default_branch) {
+                pull.base.ref === pull.default_branch || 'main') {
                 const mergeTime = +new Date(pull.merged_at);
-                const laterReleases = this.releases.filter((r) => +new Date(r.published_at || r.created_at) > mergeTime && r.url.includes(pull.base.repo.name));
+                const sortedReleases = this.releases.sort((a, b) => +new Date(a.published_at || a.created_at) - +new Date(b.published_at || b.created_at));
+                const laterReleases = sortedReleases.filter((r) => +new Date(r.published_at || r.created_at) >= mergeTime);
                 if (laterReleases.length === 0) {
                     continue;
                 }
@@ -31,8 +32,8 @@ export class LeadTime {
         if (leadTimes.length === 0) {
             return null;
         }
-        const averageLeadTime = Math.round((leadTimes.reduce((p, c) => p + c) / leadTimes.length) * 100) /
-            100;
+        console.log(`Lead times (in days): ${leadTimes.map(lt => lt.toFixed(2)).join(', ')}`);
+        const averageLeadTime = Math.round((leadTimes.reduce((p, c) => p + c) / leadTimes.length) * 100) / 100;
         return averageLeadTime;
     }
 }

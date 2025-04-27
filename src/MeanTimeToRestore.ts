@@ -4,7 +4,6 @@ import {Release} from './types/Release.js'
 export interface BugTime {
   start: number
   end: number
-  repo: string
 }
 
 export interface ReleaseDate {
@@ -41,20 +40,18 @@ export class MeanTimeToRestore {
     for (const bug of bugs) {
       const createdAt = +new Date(bug.created_at);
       const closedAt = +new Date(bug.closed_at as string);
-      const repoName = bug.repository_url.split('/').reverse()[0];
       if (!bug.closed_at) {
         continue;
       }
-      if (!this.hasLaterRelease(closedAt, repoName)) {
+      if (!this.hasLaterRelease(closedAt)) {
         continue;
       }
-      if (!this.hasPreviousRelease(createdAt, repoName)) {
+      if (!this.hasPreviousRelease(createdAt)) {
         continue;
       }
       values.push({
         start: createdAt,
-        end: closedAt,
-        repo: repoName,
+        end: closedAt
       });
     }
     return values;
@@ -70,17 +67,16 @@ export class MeanTimeToRestore {
     return bugs;
   }
 
-  hasPreviousRelease(date: number, repo: string): boolean {
+  hasPreviousRelease(date: number): boolean {
     return (
-      this.releaseDates.filter(r => r.published < date && r.url.includes(repo))
+      this.releaseDates.filter(r => r.published < date)
         .length > 0
     )
   }
 
-  getReleaseBefore(date: number, repo: string): ReleaseDate {
+  getReleaseBefore(date: number): ReleaseDate {
     const rdates: ReleaseDate[] = this.releaseDates.filter(
-      r => r.published < date && r.url.includes(repo)
-    )
+      r => r.published < date)
 
     if (rdates.length === 0) {
       throw new Error('No previous releases')
@@ -89,10 +85,9 @@ export class MeanTimeToRestore {
     return rdates.pop() as ReleaseDate
   }
 
-  getReleaseAfter(date: number, repo: string): ReleaseDate {
+  getReleaseAfter(date: number): ReleaseDate {
     const rdates: ReleaseDate[] = this.releaseDates.filter(
-      r => r.published > date && r.url.includes(repo)
-    )
+      r => r.published > date)
 
     if (rdates.length === 0) {
       throw new Error('No later releases')
@@ -101,16 +96,16 @@ export class MeanTimeToRestore {
     return rdates.reverse().pop() as ReleaseDate
   }
 
-  hasLaterRelease(date: number, repo: string): boolean {
+  hasLaterRelease(date: number): boolean {
     return (
-      this.releaseDates.filter(r => r.published > date && r.url.includes(repo))
+      this.releaseDates.filter(r => r.published > date)
         .length > 0
     )
   }
 
   getRestoreTime(bug: BugTime): number {
-    const prevRel = this.getReleaseBefore(bug.start, bug.repo)
-    const nextRel = this.getReleaseAfter(bug.end, bug.repo)
+    const prevRel = this.getReleaseBefore(bug.start)
+    const nextRel = this.getReleaseAfter(bug.end)
 
     return nextRel.published - prevRel.published
   }

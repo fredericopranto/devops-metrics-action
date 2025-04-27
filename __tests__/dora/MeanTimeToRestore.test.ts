@@ -5,67 +5,52 @@ import { type BugTime, ReleaseDate, MeanTimeToRestore} from '../../src/MeanTimeT
 describe('MeanTimeToRestore ', () => {
   const issues = [
     {
-      created_at: '2025-01-01T10:00:00Z',
+      created_at: '2025-01-02T10:00:00Z',
       closed_at: '2025-01-02T10:00:00Z',
       labels: [{name: 'bug'}]
     }
   ] as Issue[]
-  const releases = [] as Release[];
+  const releases = [
+    { published_at: '2025-01-01T10:00:00Z'},
+    { published_at: '2025-01-04T10:00:00Z'}
+  ] as Release[]
+
   const mttr = new MeanTimeToRestore( issues, releases);
 
   it('get bugs last month', () => {
     const bugCount = mttr.getBugCount();
 
-    expect(bugCount.length).toBe(2)
-    expect(bugCount[0].start).toBe(+new Date('2025-01-01T10:00:00Z'))
-    expect(bugCount[1].end).toBe(+new Date('2025-01-02T10:00:00Z'))
+    expect(bugCount.length).toBe(1)
+    expect(bugCount[0].start).toBe(+new Date('2025-01-02T10:00:00Z'));
+    expect(bugCount[0].end).toBe(+new Date('2025-01-02T10:00:00Z'));
   })
 
   it('find release time before date', () => {
-    const before1: ReleaseDate = mttr.getReleaseBefore(
-      +new Date('2023-04-25T21:21:49Z'),
-      'devops-metrics-action'
-    )
-    const before2: ReleaseDate = mttr.getReleaseBefore(
-      +new Date('2023-04-29T12:54:45Z'),
-      'devops-metrics-action'
-    )
+    const before1 = mttr.getReleaseBefore(+new Date('2025-01-02T10:00:00Z'));
+    const before2 = mttr.getReleaseBefore(+new Date('2025-01-05T10:00:00Z'));
 
-    expect(before1.published).toBe(+new Date('2023-04-22T20:28:29Z'))
-    expect(before2.published).toBe(+new Date('2023-04-29T06:18:36Z'))
+    expect(before1.published).toBe(+new Date('2025-01-01T10:00:00Z'));
+    expect(before2.published).toBe(+new Date('2025-01-04T10:00:00Z'));
   })
 
   it('throw error when no earlier dates', () => {
-    const t = (): void => {
-      mttr.getReleaseBefore(
-        +new Date('2023-04-05T21:21:49Z'),
-        'devops-metrics-action'
-      )
-    }
-
-    expect(t).toThrow('No previous releases')
+    expect(() => {
+      mttr.getReleaseBefore(+new Date('2025-01-01T09:10:10Z'));
+    }).toThrow('No previous releases');
   })
 
   it('find release time after date', () => {
-    const after1: ReleaseDate = mttr.getReleaseAfter(
-      +new Date('2023-04-25T21:21:49Z'),
-      'devops-metrics-action'
-    )
-    const after2: ReleaseDate = mttr.getReleaseAfter(
-      +new Date('2023-04-29T12:54:45Z'),
-      'devops-metrics-action'
-    )
+    const after1 = mttr.getReleaseAfter(+new Date('2025-01-01T09:00:00Z'));
+    const after2 = mttr.getReleaseAfter(+new Date('2025-01-03T10:00:00Z'));
 
-    expect(after1.published).toBe(+new Date('2023-04-29T06:18:36Z'))
-    expect(after2.published).toBe(+new Date('2023-04-30T16:06:06Z'))
+    expect(after1.published).toBe(+new Date('2025-01-01T10:00:00Z'));
+    expect(after2.published).toBe(+new Date('2025-01-04T10:00:00Z'));
   })
 
   it('throw error when no later dates', () => {
     const t = (): void => {
       mttr.getReleaseAfter(
-        +new Date('2023-05-05T21:21:49Z'),
-        'devops-metrics-action'
-      )
+        +new Date('2023-05-05T21:21:49Z')      )
     }
 
     expect(t).toThrow('No later releases')
@@ -73,13 +58,9 @@ describe('MeanTimeToRestore ', () => {
 
   it('check if there are later releases', () => {
     const hasLaterRelease: boolean = mttr.hasLaterRelease(
-      +new Date('2023-04-29T12:54:45Z'),
-      'devops-metrics-action'
-    )
+      +new Date('2023-04-29T12:54:45Z')    )
     const hasNoLaterRelease: boolean = mttr.hasLaterRelease(
-      +new Date('2023-04-30T17:29:44Z'),
-      'devops-metrics-action'
-    )
+      +new Date('2023-04-30T17:29:44Z')    )
 
     expect(hasLaterRelease).toBe(true)
     expect(hasNoLaterRelease).toBe(false)
@@ -88,9 +69,7 @@ describe('MeanTimeToRestore ', () => {
   it('get time for a bug 1', () => {
     const bug: BugTime = {
       start: +new Date('2023-04-22T21:44:06Z'),
-      end: +new Date('2023-04-23T16:47:40Z'),
-      repo: 'devops-metrics-action'
-    }
+      end: +new Date('2023-04-23T16:47:40Z')    }
     const releaseDiff =
       +new Date('2023-04-29T06:18:36Z') - +new Date('2023-04-22T20:28:29Z')
 
@@ -102,8 +81,7 @@ describe('MeanTimeToRestore ', () => {
   it('get time for a bug 2', () => {
     const bug: BugTime = {
       start: +new Date('2023-04-25T21:21:49Z'),
-      end: +new Date('2023-04-29T12:54:45Z'),
-      repo: 'devops-metrics-action'
+      end: +new Date('2023-04-29T12:54:45Z')
     }
     const releaseDiff =
       +new Date('2023-04-30T16:06:06Z') - +new Date('2023-04-22T20:28:29Z')
