@@ -30,7 +30,7 @@ export class LeadTime {
         const mergeTime = +new Date(pull.merged_at);
 
         const laterReleases = this.releases.filter(
-          (r) => +new Date(r.published_at || r.created_at) > mergeTime
+          (r) => +new Date(r.published_at || r.created_at) >= mergeTime
         );
 
         if (laterReleases.length === 0) {

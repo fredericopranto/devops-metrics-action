@@ -75,7 +75,6 @@ describe('LeadTime ', () => {
     const value = new LeadTime(pulls, releases).getLeadTime();
     expect(value).toBe(null);
   })
-
   it('should return null when the release occurs before the pull request is merged', () => {
     const commits = [
       {
@@ -101,7 +100,6 @@ describe('LeadTime ', () => {
     const value = new LeadTime(pulls, releases).getLeadTime();
     expect(value).toBe(null)
   })
-
   it('should return null when the pull request is merged before the release, but the commit occurs after the release', () => {
     const commits = [
       {
@@ -127,7 +125,31 @@ describe('LeadTime ', () => {
     const value = new LeadTime(pulls, releases).getLeadTime();
     expect(value).toBe(null)
   })
-
+  it('should return a Lead Time of 0 day when the release occurs at the same datetime to the commit', () => {
+    const commits = [
+      {
+        commit: {
+          committer: {
+            date: '2025-01-01T10:00:00Z'
+          }
+        }
+      } 
+    ] as Commit[];  
+    const pulls = [
+      {
+        merged_at: '2025-01-01T10:00:00Z',
+        base: {ref: 'main', repo: {name: 'dora'}}, 
+        commits: commits
+      }
+    ] as PullRequest[]
+    const releases = [
+      {
+        published_at: '2025-01-01T10:00:00Z'
+      }
+    ] as Release[];
+    const value = new LeadTime(pulls, releases).getLeadTime();
+    expect(value).toBe(0)
+  })
   it('should return a Lead Time of 1 day when the commit occurs 1 day before the release', () => {
     const commits = [
       {
@@ -153,57 +175,6 @@ describe('LeadTime ', () => {
     const value = new LeadTime(pulls, releases).getLeadTime();
     expect(value).toBe(1)
   })
-
-  // it('return 8 on pull-requests with base.ref = main and earlier release on other repo', () => {
-  //   const pullRequests = [
-  //     {
-  //       merged_at: '2023-04-28T17:50:53Z', // 30-22 = 8
-  //       base: {ref: 'main', repo: {name: 'devops-metrics-action'}},
-  //       commits_url: 'path/to/commits/1'
-  //     }
-  //   ] as PullRequest[]
-  //   const releases = [
-  //     {
-  //       url: 'https://api.github.com/repos/stenjo/other-repo/releases/101411508',
-  //       published_at: '2023-04-29T17:50:53Z'
-  //     },
-  //     {
-  //       url: 'https://api.github.com/repos/stenjo/devops-metrics-action/releases/101411508',
-  //       published_at: '2023-04-30T17:50:53Z'
-  //     }
-  //   ] as Release[]
-  //   const lt = new LeadTime(
-  //     pullRequests,
-  //     releases,
-  //   )
-
-  //   const leadTime = await lt.getLeadTime()
-
-  //   expect(leadTime).toBe(8)
-  // })
-
-  // it('return 0 on too old pull-requests', () => {
-  //   const pulls = [
-  //     {
-  //       merged_at: '2023-04-29T17:50:53Z',
-  //       base: {ref: 'main', repo: {name: 'devops-metrics-action'}}
-  //     }
-  //   ] as PullRequest[]
-  //   const rels = [
-  //     {
-  //       url: 'https://api.github.com/repos/stenjo/devops-metrics-action/releases/101411508',
-  //       published_at: '2023-04-30T17:50:53Z'
-  //     }
-  //   ] as Release[]
-  //   const lt = new LeadTime(
-  //     pulls,
-  //     rels,
-  //   )
-
-  //   const leadTime = await lt.getLeadTime()
-
-  //   expect(leadTime).toBe(0)
-  // })
   // it('return 11 on pull-requests with two commits', () => {
   //   const pulls = [
   //     {
