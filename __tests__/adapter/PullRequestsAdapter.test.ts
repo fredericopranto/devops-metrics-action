@@ -69,7 +69,7 @@ describe('PullRequest Adapter should', () => {
     errorServer.listen()
     const r = new PullRequestsAdapter(octokit, 'fredericopranto', 'mock')
     const result = await r.GetAllPRs()
-    expect(result).toBe(undefined)
+    expect(result).toBe(null)
     expect(setFailed).toHaveBeenCalledWith('access denied')
     errorServer.close()
   })

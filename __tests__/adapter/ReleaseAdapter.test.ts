@@ -106,7 +106,7 @@ describe('Release Adapter should', () => {
     const r = new ReleaseAdapter(octokit, 'fredericopranto', 'mock')
     const result = await r.GetAllReleases()
 
-    expect(result).toBe(undefined)
+    expect(result).toBe(null)
     expect(setFailed).toHaveBeenCalledWith('access denied')
     errorServer.close()
   })

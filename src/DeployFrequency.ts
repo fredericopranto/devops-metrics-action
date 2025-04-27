@@ -7,7 +7,7 @@ export class DeployFrequency {
   startDate?: Date;
   endDate?: Date;
 
-  constructor(releases: Release[], startDate?: Date, endDate?: Date) {
+  constructor(releases: Release[], startDate?: Date | null, endDate?: Date | null) {
     this.releases = releases as Release[];
 
     if (startDate && isNaN(new Date(startDate).getTime())) {

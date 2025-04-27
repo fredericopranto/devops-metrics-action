@@ -1,5 +1,5 @@
 import {PullRequest} from '../types/PullRequest.js'
 
 export interface IPullRequestsAdapter {
-  GetAllPRs(): Promise<PullRequest[] | undefined>
+  GetAllPRs(): Promise<PullRequest[] | null>
 }

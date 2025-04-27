@@ -17,7 +17,7 @@ export class IssuesAdapter {
             let nextPage = [];
             do {
                 //console.log(`Fetching issues for repository "${this.repo}", page ${page}...`);
-                nextPage = await this.getIssues(since, page);
+                nextPage = await this.getIssues(page, since);
                 //console.log(`Fetched ${nextPage.length} issues from page ${page}`);
                 result = result.concat(nextPage);
                 page++;
@@ -31,7 +31,7 @@ export class IssuesAdapter {
             return [];
         }
     }
-    async getIssues(since, page) {
+    async getIssues(page, since) {
         const params = {
             owner: this.owner,
             repo: this.repo,

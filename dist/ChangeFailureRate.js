@@ -5,7 +5,7 @@ export class ChangeFailureRate {
     releases;
     constructor(issues, releases) {
         this.issues = issues;
-        this.releases = releases.sort((a, b) => +new Date(a.published_at) < +new Date(b.published_at) ? -1 : 1);
+        this.releases = releases.sort((a, b) => +new Date(a.published_at || a.created_at) < +new Date(b.published_at || b.created_at) ? -1 : 1);
     }
     getBugs() {
         const bugLabels = (process.env.BUG_LABEL || 'bug').split(',').map(label => label.trim());
@@ -16,12 +16,15 @@ export class ChangeFailureRate {
             return 0;
         }
         if (this.releases.length === 0) {
-            throw new Error('Empty release list');
+            return null;
+        }
+        const validReleases = this.releases.filter(release => release.published_at || release.created_at);
+        if (validReleases.length === 0) {
+            return null;
         }
         const bugs = this.getBugs();
-        const releaseDates = this.releases.map(release => ({
-            published: +new Date(release.published_at),
-            url: release.url,
+        const releaseDates = validReleases.map(release => ({
+            published: +new Date(release.published_at || release.created_at)
         }));
         let failedDeploys = 0;
         for (let i = 0; i < releaseDates.length - 1; i++) {

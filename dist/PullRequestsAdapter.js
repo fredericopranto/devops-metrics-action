@@ -16,7 +16,7 @@ export class PullRequestsAdapter {
             let page = 1;
             let nextPage = [];
             do {
-                nextPage = await this.getPRs(since, page);
+                nextPage = await this.getPRs(page, since);
                 result = result.concat(nextPage);
                 page++;
             } while (nextPage.length === 50);
@@ -28,7 +28,7 @@ export class PullRequestsAdapter {
             return [];
         }
     }
-    async getPRs(since, page) {
+    async getPRs(page, since) {
         const params = {
             owner: this.owner,
             repo: this.repo,
@@ -44,19 +44,6 @@ export class PullRequestsAdapter {
         }
         const result = await this.octokit.request('GET /repos/{owner}/{repo}/pulls', params);
         return result.data;
-    }
-    async getDefaultBranch(owner, repo) {
-        try {
-            const response = await this.octokit.request('GET /repos/{owner}/{repo}', {
-                owner,
-                repo,
-            });
-            return response.data.default_branch;
-        }
-        catch (error) {
-            console.error(`Error fetching default branch for ${owner}/${repo}:`, error);
-            throw error;
-        }
     }
 }
 //# sourceMappingURL=PullRequestsAdapter.js.map

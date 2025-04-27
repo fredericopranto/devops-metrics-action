@@ -17,7 +17,7 @@ export class IssuesAdapter implements IIssuesAdapter {
     this.today = new Date();
   }
 
-  async GetAllIssues(since?: Date): Promise<Issue[] | undefined> {
+  async GetAllIssues(since?: Date): Promise<Issue[] | null> {
     try {
       let result: Issue[] = [];
       let page = 1;
@@ -25,7 +25,7 @@ export class IssuesAdapter implements IIssuesAdapter {
 
       do {
         //console.log(`Fetching issues for repository "${this.repo}", page ${page}...`);
-        nextPage = await this.getIssues(since, page);
+        nextPage = await this.getIssues(page,since);
         //console.log(`Fetched ${nextPage.length} issues from page ${page}`);
         result = result.concat(nextPage);
         page++;
@@ -40,7 +40,7 @@ export class IssuesAdapter implements IIssuesAdapter {
     }
   }
 
-  private async getIssues(since: Date | undefined, page: number): Promise<Issue[]> {
+  private async getIssues(page: number, since?: Date): Promise<Issue[]> {
     const params: any = {
       owner: this.owner,
       repo: this.repo,

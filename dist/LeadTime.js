@@ -3,18 +3,16 @@ export class LeadTime {
     log = [];
     pulls;
     releases;
-    branch;
     commitsAdapter;
-    constructor(pulls, releases, commitsAdapter, branch) {
+    constructor(pulls, releases, commitsAdapter) {
         this.commitsAdapter = commitsAdapter;
-        this.branch = branch;
         this.pulls = pulls;
         this.releases = releases.map((r) => {
             return {
-                published: +new Date(r.published_at),
+                published: +new Date(r.published_at || r.created_at),
                 url: r.url,
                 name: r.name,
-                published_at: r.published_at,
+                published_at: r.published_at || r.created_at,
             };
         });
     }
@@ -27,11 +25,12 @@ export class LeadTime {
         for (const pull of this.pulls) {
             processedCount++;
             //console.log(`Processing PR ${processedCount}/${this.pulls.length}: ${pull.title}`);
+            const branch = await this.commitsAdapter.getDefaultBranch(pull.base.repo.owner.login, pull.base.repo.name);
             if (typeof pull.merged_at === 'string' &&
                 pull.merged_at &&
                 typeof pull.base.repo.name === 'string' &&
                 pull.base.repo.name &&
-                pull.base.ref === this.branch) {
+                pull.base.ref === branch) {
                 const mergeTime = +new Date(pull.merged_at);
                 const laterReleases = this.releases.filter((r) => r.published > mergeTime && r.url.includes(pull.base.repo.name));
                 if (laterReleases.length === 0) {

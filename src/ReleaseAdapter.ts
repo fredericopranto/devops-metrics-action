@@ -51,7 +51,7 @@ export class ReleaseAdapter implements IReleaseAdapter {
       }
 
       const filteredReleases = result.filter(release => {
-        const publishedAt = new Date(release.published_at || '');
+        const publishedAt = new Date(release.published_at || release.created_at);
         if (release.prerelease) return false;
         if (since && publishedAt < since) return false;
         if (until && publishedAt > until) return false;
@@ -63,12 +63,12 @@ export class ReleaseAdapter implements IReleaseAdapter {
 
       if (filteredReleases.length > 0) {
         const sortedReleases = filteredReleases.sort((a, b) =>
-          new Date(a.published_at || '').getTime() - new Date(b.published_at || '').getTime()
+          new Date(a.published_at || a.created_at).getTime() - new Date(b.published_at || a.created_at).getTime()
         );
         const firstRelease = sortedReleases[0];
         const lastRelease = sortedReleases[sortedReleases.length - 1];
-        console.log(`First evaluated release: ${firstRelease.published_at}`);
-        console.log(`Last evaluated release: ${lastRelease.published_at}`);
+        console.log(`First evaluated release: ${firstRelease.published_at || firstRelease.created_at}`);
+        console.log(`Last evaluated release: ${lastRelease.published_at || lastRelease.created_at}`);
       }
 
       return filteredReleases;

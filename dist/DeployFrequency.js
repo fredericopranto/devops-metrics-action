@@ -1,41 +1,57 @@
 const ONE_DAY = 1000 * 60 * 60 * 24;
 export class DeployFrequency {
-    rList = new Array();
+    releases = new Array();
     startDate;
     endDate;
     constructor(releases, startDate, endDate) {
-        this.rList = releases;
-        this.startDate = startDate ?? (this.rList.length > 0 ? new Date(this.rList[0].published_at) : new Date(0));
-        this.endDate = endDate ?? new Date();
-        if (this.rList === null || this.rList.length === 0) {
-            console.log('Empty release list');
+        this.releases = releases;
+        if (startDate && isNaN(new Date(startDate).getTime())) {
+            throw new Error('Invalid start date format');
         }
-        if (this.startDate > this.endDate) {
-            console.log('Start date must be before end date');
+        if (endDate && isNaN(new Date(endDate).getTime())) {
+            throw new Error('Invalid end date format');
         }
+        this.releases.forEach(release => {
+            const releaseDate = new Date(release.published_at || release.created_at);
+            if (isNaN(releaseDate.getTime())) {
+                throw new Error(`Invalid release date format: ${release.published_at || release.created_at}`);
+            }
+        });
+        this.startDate = startDate
+            ? new Date(startDate.toISOString().split('T')[0])
+            : (this.releases.length > 0
+                ? new Date(new Date(this.releases[0].published_at || this.releases[0].created_at).toISOString().split('T')[0])
+                : new Date(0));
+        this.endDate = endDate
+            ? new Date(endDate.toISOString().split('T')[0])
+            : new Date(new Date().toISOString().split('T')[0]);
     }
     rate() {
-        if (this.rList.length < 2) {
-            return null;
+        if (this.startDate > this.endDate) {
+            throw new Error('Start date must be before end date');
         }
-        const totalReleases = this.rList.filter(release => {
-            const relDate = new Date(release.published_at);
-            const relDateWithoutTime = new Date(relDate.getFullYear(), relDate.getMonth(), relDate.getDate());
-            const startDateWithoutTime = new Date(this.startDate.getFullYear(), this.startDate.getMonth(), this.startDate.getDate());
-            const endDateWithoutTime = new Date(this.endDate.getFullYear(), this.endDate.getMonth(), this.endDate.getDate());
+        const totalReleases = this.releases.filter(release => {
+            const relDate = new Date(release.published_at || release.created_at);
+            const relDateWithoutTime = new Date(relDate.toISOString().split('T')[0]);
+            const startDateWithoutTime = new Date(this.startDate.toISOString().split('T')[0]);
+            const endDateWithoutTime = new Date(this.endDate.toISOString().split('T')[0]);
             const isInRange = relDateWithoutTime >= startDateWithoutTime && relDateWithoutTime <= endDateWithoutTime;
             return isInRange;
         }).length;
-        let totalPeriods = 0;
-        totalPeriods = this.getTotalDays();
-        console.log(`Total releases: ${totalReleases}`);
-        console.log(`Total periods (days): ${totalPeriods}`);
+        if (totalReleases === 0) {
+            return null;
+        }
+        const totalPeriods = this.getTotalDays();
+        // console.log(`Total releases: ${totalReleases}`);
+        // console.log(`Total periods (days): ${totalPeriods}`);
+        // console.log('Start Date:', this.startDate);
+        // console.log('End Date:', this.endDate);
         const average = totalPeriods / totalReleases;
         return parseFloat(average.toFixed(2));
     }
     getTotalDays() {
-        const startDateWithoutTime = new Date(this.startDate.getFullYear(), this.startDate.getMonth(), this.startDate.getDate());
-        const endDateWithoutTime = new Date(this.endDate.getFullYear(), this.endDate.getMonth(), this.endDate.getDate());
+        const startDateWithoutTime = new Date(this.startDate.toISOString().split('T')[0]);
+        const endDateWithoutTime = new Date(this.endDate.toISOString().split('T')[0]);
         const differenceMs = endDateWithoutTime.getTime() - startDateWithoutTime.getTime();
         return Math.floor(differenceMs / ONE_DAY) + 1;
     }

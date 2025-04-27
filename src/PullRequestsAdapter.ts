@@ -17,14 +17,14 @@ export class PullRequestsAdapter implements IPullRequestsAdapter {
     this.today = new Date();
   }
 
-  async GetAllPRs(since?: Date): Promise<PullRequest[] | undefined> {
+  async GetAllPRs(since?: Date): Promise<PullRequest[] | null> {
     try {
       let result: PullRequest[] = [];
       let page = 1;
       let nextPage: PullRequest[] = [];
 
       do {
-        nextPage = await this.getPRs(since, page);
+        nextPage = await this.getPRs(page, since);
         result = result.concat(nextPage);
         page++;
       } while (nextPage.length === 50);
@@ -37,7 +37,7 @@ export class PullRequestsAdapter implements IPullRequestsAdapter {
     }
   }
 
-  async getPRs(since: Date | undefined, page: number): Promise<PullRequest[]> {
+  async getPRs(page: number, since? : Date): Promise<PullRequest[]> {
     const params: any = {
       owner: this.owner,
       repo: this.repo,
@@ -59,19 +59,5 @@ export class PullRequestsAdapter implements IPullRequestsAdapter {
     );
 
     return result.data as PullRequest[];
-  }
-
-  async getDefaultBranch(owner: string, repo: string): Promise<string> {
-    try {
-      const response = await this.octokit.request('GET /repos/{owner}/{repo}', {
-        owner,
-        repo,
-      });
-
-      return response.data.default_branch;
-    } catch (error) {
-      console.error(`Error fetching default branch for ${owner}/${repo}:`, error);
-      throw error;
-    }
   }
 }

@@ -11,7 +11,7 @@ export class ChangeFailureRate {
   constructor(issues: Issue[], releases: Release[]) {
     this.issues = issues;
     this.releases = releases.sort((a, b) =>
-      +new Date(a.published_at) < +new Date(b.published_at) ? -1 : 1
+      +new Date(a.published_at || a.created_at) < +new Date(b.published_at || b.created_at) ? -1 : 1
     );
   }
 

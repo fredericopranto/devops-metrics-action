@@ -71,7 +71,7 @@ describe('Commit Adapter should', () => {
     errorServer.listen()
     const r = new CommitsAdapter(octokit)
     const result = await r.getCommitsFromUrl(commitsUrl)
-    expect(result).toBe(undefined)
+    expect(result).toBe(null)
     expect(setFailed).toHaveBeenCalledWith('Bad credentials')
     errorServer.close()
   })

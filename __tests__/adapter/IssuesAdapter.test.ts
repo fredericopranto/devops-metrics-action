@@ -68,7 +68,7 @@ describe('Issue Adapter should', () => {
     errorServer.listen()
     const r = new IssuesAdapter(octokit, 'fredericopranto', 'mock')
     const result = await r.GetAllIssues()
-    expect(result).toBe(undefined)
+    expect(result).toBe(null)
     expect(setFailed).toHaveBeenCalledWith('access denied')
     errorServer.close()
   })

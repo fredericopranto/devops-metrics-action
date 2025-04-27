@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Octokit } from '@octokit/core';
-import * as core from '@actions/core';
 import { Commit } from './types/Commit.js';
 import { ICommitsAdapter } from './interfaces/ICommitsAdapter.js';
 
@@ -21,13 +20,17 @@ export class CommitsAdapter implements ICommitsAdapter {
     }
   }
 
-  private async getCommits(url: string): Promise<Commit[] | undefined> {
-    const result = await this.octokit.request(url, {
-      headers: {
-        'X-GitHub-Api-Version': '2022-11-28',
-      },
-    });
+  async getDefaultBranch(owner: string, repo: string): Promise<string> {
+    try {
+      const response = await this.octokit.request('GET /repos/{owner}/{repo}', {
+        owner,
+        repo,
+      });
 
-    return Promise.resolve(result.data);
+      return response.data.default_branch;
+    } catch (error) {
+      console.error(`Error fetching default branch for ${owner}/${repo}:`, error);
+      throw error;
+    }
   }
 }

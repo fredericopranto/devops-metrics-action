@@ -44,6 +44,6 @@ test('CommitsAdapter should', async () => {
     'https://api.github.com/repos/stenjo/devops-metrics-action/pulls/69/commits'
   )
 
-  expect(result).not.toBe(undefined)
+  expect(result).not.toBe(null)
   expect((result as Commit[]).length).toBeGreaterThan(7)
 })

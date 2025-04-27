@@ -18,7 +18,7 @@ export class MeanTimeToRestore {
         }
         this.releaseDates = this.releases
             .map(function (r) {
-            return { published: +new Date(r.published_at), url: r.url };
+            return { published: +new Date(r.published_at || r.created_at), url: r.url };
         })
             .sort((a, b) => a.published - b.published); // Sort ascending
     }

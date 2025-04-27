@@ -16,8 +16,8 @@ dotenv.config();
 export async function run() {
     try {
         const token = process.env.GITHUB_TOKEN || '';
-        const startDate = process.env.START_DATE ? new Date(process.env.START_DATE) : undefined;
-        const endDate = process.env.END_DATE ? new Date(process.env.END_DATE) : undefined;
+        const startDate = process.env.START_DATE ? new Date(process.env.START_DATE) : null;
+        const endDate = process.env.END_DATE ? new Date(process.env.END_DATE) : null;
         if (!token) {
             throw new Error('Please configure the GITHUB_TOKEN variable in the .env file');
         }
@@ -32,6 +32,9 @@ export async function run() {
             .filter(line => line && !line.startsWith('//'))
             .map(line => {
             const [repository, category] = line.split(',');
+            if (!repository || !category) {
+                throw new Error(`Invalid entry in projects.csv: "${line}". Both repository and category must be defined.`);
+            }
             return { repository: repository.trim(), category: category.trim() };
         });
         console.log(repositories.length, 'repository(ies) loaded from projects.csv.');
@@ -47,10 +50,19 @@ export async function run() {
             console.log('>>>> Processing repository: ' + repository + ' (Category: ' + category + ')');
             const [owner, repo] = repository.split('/');
             const adapterRelease = new ReleaseAdapter(octokit, owner, repo);
+            const adapterIssue = new IssuesAdapter(octokit, owner, repo);
+            const adapterPR = new PullRequestsAdapter(octokit, owner, repo);
+            const adapterCommits = new CommitsAdapter(octokit);
             const releases = (await adapterRelease.GetAllReleases(startDate, endDate)) || [];
-            const issue = new IssuesAdapter(octokit, owner, repo);
-            const issues = (await issue.GetAllIssues()) || [];
+            const issues = (await adapterIssue.GetAllIssues()) || [];
+            const pulls = (await adapterPR.GetAllPRs()) || [];
+            const pullsWithCommits = await Promise.all(pulls.map(async (pull) => {
+                const pullCommits = await adapterCommits.getCommitsFromUrl(pull.commits_url);
+                pull.commits = pullCommits;
+            }));
             console.log('Total issues: ', issues.length);
+            console.log('Total releases: ', releases.length);
+            console.log('Total pulls: ', pulls.length);
             // Deployment Frequency
             const df = new DeployFrequency(releases, startDate, endDate);
             const dfDays = df.rate();
@@ -64,12 +76,7 @@ export async function run() {
             console.log('Deployment Frequency (deploy/month):', dfValue);
             console.log('Deployment Frequency (level):', dfLevel);
             // Lead Time
-            const adapterPR = new PullRequestsAdapter(octokit, owner, repo);
-            const commits = new CommitsAdapter(octokit);
-            const pulls = (await adapterPR.GetAllPRs()) || [];
-            console.log(`Total prs: ${pulls.length}`);
-            const branch = (await adapterPR.getDefaultBranch(owner, repo));
-            const lt = new LeadTime(pulls, releases, commits, branch);
+            const lt = new LeadTime(pulls, releases, adapterCommits);
             const ltValue = await lt.getLeadTime();
             if (ltValue === null) {
                 nullResults.push({ repository, category, metric: 'Lead Time' });

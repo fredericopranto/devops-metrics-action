@@ -6,14 +6,13 @@ import {LeadTime} from '../../src/LeadTime'
 import {expect, jest} from '@jest/globals'
 import { Octokit } from '@octokit/rest'
 
+
 const token = process.env.GITHUB_TOKEN
   if (!token) {
     throw new Error(
       'GitHub token (GITHUB_TOKEN) is not defined in the environment variables.'
     )
   }
-
-// Create an Octokit instance using the token
 const octokit = new Octokit({ auth: token })
 
 describe('LeadTime should', () => {
@@ -23,15 +22,11 @@ describe('LeadTime should', () => {
       return Promise.resolve([{}] as Commit[])
     }
   )
-
   it('return 0 on no pull-requests', async () => {
     const pulls = [] as PullRequest[]
-    const lt = new LeadTime(
-      pulls,
-      [{published_at: '2023-04-30T17:50:53Z'}] as Release[],
-      commitsAdapter,
-      new Date()
-    )
+    const releases = [] as Release[];
+
+    const lt = new LeadTime(pulls,releases, commitsAdapter)
 
     const leadTime = await lt.getLeadTime()
 
