@@ -55,14 +55,17 @@ export async function run() {
             const adapterCommits = new CommitsAdapter(octokit);
             const releases = (await adapterRelease.GetAllReleases(startDate, endDate)) || [];
             const issues = (await adapterIssue.GetAllIssues()) || [];
-            const pulls = (await adapterPR.GetAllPRs()) || [];
-            const pullsWithCommits = await Promise.all(pulls.map(async (pull) => {
+            let pulls = (await adapterPR.GetAllPRs()) || [];
+            pulls = await Promise.all(pulls.map(async (pull) => {
                 const pullCommits = await adapterCommits.getCommitsFromUrl(pull.commits_url);
                 pull.commits = pullCommits;
+                return pull;
             }));
             console.log('Total issues: ', issues.length);
             console.log('Total releases: ', releases.length);
             console.log('Total pulls: ', pulls.length);
+            const totalCommits = pulls.reduce((sum, pull) => sum + (pull.commits?.length || 0), 0);
+            console.log('Total commits: ', totalCommits);
             // Deployment Frequency
             const df = new DeployFrequency(releases, startDate, endDate);
             const dfDays = df.rate();

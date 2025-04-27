@@ -71,17 +71,19 @@ export async function run(): Promise<void> {
 
       const releases = (await adapterRelease.GetAllReleases(startDate, endDate)) || [];
       const issues = (await adapterIssue.GetAllIssues()) || [];
-      const pulls = (await adapterPR.GetAllPRs()) || [];
-      const pullsWithCommits = await Promise.all(
+      let pulls = (await adapterPR.GetAllPRs()) || [];
+      pulls = await Promise.all(
         pulls.map(async pull => {
           const pullCommits = await adapterCommits.getCommitsFromUrl(pull.commits_url);
           pull.commits = pullCommits as Commit[];
+          return pull;
         })
       );
       
       console.log('Total issues: ', issues.length);
       console.log('Total releases: ', releases.length);
       console.log('Total pulls: ', pulls.length);
+      console.log('Total commits: ', pulls.reduce((sum, pull) => sum + (pull.commits?.length || 0), 0));
 
       // Deployment Frequency
       const df = new DeployFrequency(releases, startDate, endDate);
