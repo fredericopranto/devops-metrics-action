@@ -14,7 +14,7 @@ export class ReleaseAdapter implements IReleaseAdapter {
     this.repo = repo;
   }
 
-  async GetAllReleases(since: Date | null, until: Date | null): Promise<Release[]> {
+  async GetAllReleases(since?: Date | null, until?: Date | null): Promise<Release[]> {
     try {
       let result: Release[] = [];
       let page = 1;

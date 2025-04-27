@@ -109,6 +109,7 @@
     "prettier-eslint": "^16.3.0",
     "stryker-cli": "^1.0.2",
     "ts-jest": "^29.2.3",
-    "typescript": "^5.5.4"
+    "typescript": "^5.5.4",
+    "whatwg-fetch": "^3.6.20"
   }
 }

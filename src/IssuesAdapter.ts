@@ -1,8 +1,8 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { Octokit } from '@octokit/core';
 import * as core from '@actions/core';
 import { IIssuesAdapter } from './interfaces/IIssuesAdapter.js';
 import { Issue } from './types/Issue.js';
+import https from 'https'; // Importa o módulo HTTPS para configurar o agente
 
 export class IssuesAdapter implements IIssuesAdapter {
   octokit: Octokit;
@@ -11,7 +11,17 @@ export class IssuesAdapter implements IIssuesAdapter {
   today: Date;
 
   constructor(octokit: Octokit, owner: string, repo: string) {
-    this.octokit = octokit;
+    const agent = new https.Agent({
+      rejectUnauthorized: false, 
+    });
+
+    this.octokit = new Octokit({
+      auth: octokit.auth,
+      request: {
+        agent,
+      },
+    });
+
     this.owner = owner;
     this.repo = repo;
     this.today = new Date();
@@ -24,14 +34,11 @@ export class IssuesAdapter implements IIssuesAdapter {
       let nextPage: Issue[] = [];
 
       do {
-        //console.log(`Fetching issues for repository "${this.repo}", page ${page}...`);
-        nextPage = await this.getIssues(page,since);
-        //console.log(`Fetched ${nextPage.length} issues from page ${page}`);
+        nextPage = await this.getIssues(page, since);
         result = result.concat(nextPage);
         page++;
-      } while (nextPage.length === 50); 
+      } while (nextPage.length === 50);
 
-      //console.log(`Total issues fetched for repository "${this.repo}": ${result.length}`);
       return result;
     } catch (e: any) {
       console.error(`Error fetching issues for repository "${this.repo}": ${e.message}`);
@@ -49,7 +56,7 @@ export class IssuesAdapter implements IIssuesAdapter {
       },
       per_page: 50,
       page,
-      state: 'all', 
+      state: 'all',
     };
 
     if (since) {
@@ -61,10 +68,17 @@ export class IssuesAdapter implements IIssuesAdapter {
       params
     );
 
-    // Filtrar apenas issues (excluindo pull requests)
+    if (!Array.isArray(result.data)) {
+      throw new Error(`Unexpected API response: ${JSON.stringify(result.data)}`);
+    }
+
+    console.log(`namespace: ${this.owner}/${this.repo}`);
+    console.log(`Fetched ${result.data.length} issues from page ${page}`);
+    console.log(`Fetched ${result.data} issues from page ${page}`);
+    console.log(`Request Params:`, params);
+
     const issues = result.data.filter((issue: any) => !issue.pull_request);
 
-    //console.log(`Fetched ${issues.length} issues for repo: "${this.repo}", page: ${page}`);
     return issues as Issue[];
   }
 }

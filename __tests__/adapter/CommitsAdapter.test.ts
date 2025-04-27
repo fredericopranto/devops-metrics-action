@@ -1,4 +1,6 @@
-import {http, HttpResponse} from 'msw'
+import {http} from 'msw';
+import {Response} from 'whatwg-fetch';
+import {HttpResponse} from 'msw'
 import {setupServer} from 'msw/node'
 import {setFailed} from '@actions/core'
 import {CommitsAdapter} from '../../src/CommitsAdapter'
@@ -8,15 +10,15 @@ import { Octokit } from '@octokit/rest'
 
 const commitsUrl =
   'https://api.github.com/repos/stenjo/devops-metrics-action/pulls/69/commits'
-const server = setupServer(
+
+  const server = setupServer(
   http.get(
     commitsUrl,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     ({request, params, cookies}) => {
       const commits: Commit[] = JSON.parse(
         fs.readFileSync('./__tests__/test-data/commits.json').toString()
       ) as Commit[]
-      return HttpResponse.json(commits)
+      return Response.json(commits)
     }
   )
 )
