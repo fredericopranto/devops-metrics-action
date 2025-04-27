@@ -147,7 +147,7 @@ describe('LeadTime ', () => {
     const value = new LeadTime(pulls, releases).getLeadTime();
     expect(value).toBe(1)
   })
-  it('should return a Lead Time of 1 day when 5 commits occurs 1 day before the release', () => {
+  it('should return a Lead Time of 1 day when 5 commits occurs at lest 1 day before the release', () => {
     const pulls = [
       {
         merged_at: '2025-01-01T15:00:00Z',
@@ -169,7 +169,7 @@ describe('LeadTime ', () => {
     const value = new LeadTime(pulls, releases).getLeadTime();
     expect(value).toBe(1)
   })
-  it('should return a Lead Time of 6 day when 2 commits occurs 1 day before 2 releases', () => {
+  it('should return a Lead Time of 6 days when 2 commits occur, each associated with 1 release', () => {
     const pulls = [
       {
         merged_at: '2025-01-10T10:00:00Z',
@@ -193,7 +193,7 @@ describe('LeadTime ', () => {
     const value = new LeadTime(pulls, releases).getLeadTime();
     expect(value).toBe(6) // (1+11)/2
   })
-  it('should return a Lead Time of 6.67 day when 2 commits occurs 1 day before 2 releases', () => {
+  it('should return a Lead Time of 6,67 days when 3 commits are calculated in 3 releases', () => {
     const pulls = [
       {
       merged_at: '2025-01-29T10:00:00Z',
@@ -223,124 +223,69 @@ describe('LeadTime ', () => {
       { published_at: '2025-01-02T10:00:00Z' }  // 3 day
     ] as Release[];
     const value = new LeadTime(pulls, releases).getLeadTime();
-    expect(value).toBe(6.67); (11+6+3)/3
+    expect(value).toBe(6.67); // (11+6+3)/3
   })
-  // it('return 6,67 on three pull-requests with one commit each', () => {
-  //   const pulls = [
-  //     {
-  //       merged_at: '2023-04-29T17:50:53Z', // Has a commit 19/4, first release is 30/4 -> Lead time 11 days
-  //       commits_url: '47',
-  //       base: {ref: 'main', repo: {name: 'devops-metrics-action'}}
-  //     },
-  //     {
-  //       merged_at: '2023-04-27T17:50:53Z', //  Has a commit 22/4, first release is 28/4 -> Lead time 6 days
-  //       commits_url: '10',
-  //       base: {ref: 'main', repo: {name: 'devops-metrics-action'}}
-  //     },
-  //     {
-  //       merged_at: '2023-04-29T17:50:53Z', //  Has a commit 27/4, first release is 30/4 -> Lead time 3 days
-  //       commits_url: '15',
-  //       base: {ref: 'main', repo: {name: 'devops-metrics-action'}}
-  //     }
-  //   ] as PullRequest[]
-
-  //   const rels = [
-  //     {
-  //       url: 'https://api.github.com/repos/stenjo/devops-metrics-action/releases/101411508',
-  //       published_at: '2023-04-28T17:50:53Z'
-  //     },
-  //     {
-  //       url: 'https://api.github.com/repos/stenjo/devops-metrics-action/releases/101411508',
-  //       published_at: '2023-04-30T17:50:53Z'
-  //     },
-  //     {
-  //       url: 'https://api.github.com/repos/stenjo/devops-metrics-action/releases/101411508',
-  //       published_at: '2023-04-02T17:50:53Z'
-  //     }
-  //   ] as Release[]
-
-  //   const lt = new LeadTime(pulls, rels)
-
-  //   const leadTime = await lt.getLeadTime()
-
-  //   expect(leadTime).toBe(6.67) // (11+6+3)/3
-  // })
-
-  // it('return 6 on three pull-requests with one commit each and two latest not released', () => {
-  //   const pulls = [
-  //     {
-  //       merged_at: '2023-04-29T17:50:53Z', // Has a commit 19/4, first release is 30/4 -> Lead time 11 days
-  //       commits_url: '47',
-  //       base: {ref: 'main', repo: {name: 'devops-metrics-action'}}
-  //     },
-  //     {
-  //       merged_at: '2023-04-27T17:50:53Z', //  Has a commit 22/4, first release is 28/4 -> Lead time 6 days
-  //       commits_url: '10',
-  //       base: {ref: 'main', repo: {name: 'devops-metrics-action'}}
-  //     },
-  //     {
-  //       merged_at: '2023-04-29T17:50:53Z', //  Has a commit 27/4, first release is 30/4 -> Lead time 3 days
-  //       commits_url: '15',
-  //       base: {ref: 'main', repo: {name: 'devops-metrics-action'}}
-  //     }
-  //   ] as PullRequest[]
-
-  //   const rels = [
-  //     {
-  //       url: 'https://api.github.com/repos/stenjo/devops-metrics-action/releases/101411508',
-  //       published_at: '2023-04-28T17:50:53Z'
-  //     },
-  //     {
-  //       url: 'https://api.github.com/repos/stenjo/devops-metrics-action/releases/101411508',
-  //       published_at: '2023-04-02T17:50:53Z'
-  //     }
-  //   ] as Release[]
-
-  //   const lt = new LeadTime(pulls, rels)
-
-  //   const leadTime = await lt.getLeadTime()
-
-  //   expect(leadTime).toBe(6) // (6)/1
-  // })
-
-  // it('return 8 on three pull-requests with one commit each and two repos, latest not released', () => {
-  //   const pulls = [
-  //     {
-  //       merged_at: '2023-04-27T17:50:53Z', // Has a commit 19/4, first release is 29/4 -> Lead time 10 days
-  //       commits_url: '47',
-  //       base: {ref: 'main', repo: {name: 'other-repo'}}
-  //     },
-  //     {
-  //       merged_at: '2023-04-27T17:50:53Z', //  Has a commit 22/4, first release is 28/4 -> Lead time 6 days
-  //       commits_url: '10',
-  //       base: {ref: 'main', repo: {name: 'devops-metrics-action'}}
-  //     },
-  //     {
-  //       merged_at: '2023-04-29T17:50:53Z', //  Has a commit 27/4, first release is 30/4 -> Lead time 3 days
-  //       commits_url: '15',
-  //       base: {ref: 'main', repo: {name: 'devops-metrics-action'}}
-  //     }
-  //   ] as PullRequest[]
-
-  //   const rels = [
-  //     {
-  //       url: 'https://api.github.com/repos/stenjo/devops-metrics-action/releases/101411508',
-  //       published_at: '2023-04-28T17:50:53Z'
-  //     },
-  //     {
-  //       url: 'https://api.github.com/repos/stenjo/other-repo/releases/101411508',
-  //       published_at: '2023-04-29T17:50:53Z'
-  //     },
-  //     {
-  //       url: 'https://api.github.com/repos/stenjo/devops-metrics-action/releases/101411508',
-  //       published_at: '2023-04-02T17:50:53Z'
-  //     }
-  //   ] as Release[]
-
-  //   const lt = new LeadTime(pulls, rels)
-
-  //   const leadTime = await lt.getLeadTime()
-
-  //   expect(leadTime).toBe(8) // (6+10)/2
-  // })
+  it('should return a Lead Time of 6 days when 3 commits are calculated in 1 release', () => {
+    const pulls = [
+      {
+      merged_at: '2025-01-29T10:00:00Z',
+      base: {ref: 'main', repo: {name: 'dora'}}, 
+      commits: [
+        { commit: { committer: { date: '2025-01-19T10:00:00Z' } } }, 
+      ]
+      },
+      {
+      merged_at: '2025-01-27T10:00:00Z',
+      base: {ref: 'main', repo: {name: 'dora'}}, 
+      commits: [
+        { commit: { committer: { date: '2025-01-22T10:00:00Z' } } }, 
+      ]
+      },
+      {
+      merged_at: '2025-01-29T10:00:00Z',
+      base: {ref: 'main', repo: {name: 'dora'}}, 
+      commits: [
+        { commit: { committer: { date: '2025-01-27T10:00:00Z' } } }
+      ]
+      }
+    ] as PullRequest[];
+    const releases = [
+      { published_at: '2025-01-28T10:00:00Z' }, // 6 day
+      { published_at: '2025-01-02T10:00:00Z' }  
+    ] as Release[];
+    const value = new LeadTime(pulls, releases).getLeadTime();
+    expect(value).toBe(6); // (6)/1
+  })
+  it('should return a Lead Time of 6 days when 3 commits are calculated in 3 release', () => {
+    const pulls = [
+      {
+      merged_at: '2025-01-29T10:00:00Z',
+      base: {ref: 'main', repo: {name: 'dora'}}, 
+      commits: [
+        { commit: { committer: { date: '2025-01-19T10:00:00Z' } } }, 
+      ]
+      },
+      {
+      merged_at: '2025-01-27T10:00:00Z',
+      base: {ref: 'main', repo: {name: 'dora'}}, 
+      commits: [
+        { commit: { committer: { date: '2025-01-22T10:00:00Z' } } }, 
+      ]
+      },
+      {
+      merged_at: '2025-01-29T10:00:00Z',
+      base: {ref: 'main', repo: {name: 'dora'}}, 
+      commits: [
+        { commit: { committer: { date: '2025-01-27T10:00:00Z' } } }
+      ]
+      }
+    ] as PullRequest[];
+    const releases = [
+      { published_at: '2025-01-28T10:00:00Z' }, // 10 day
+      { published_at: '2025-01-29T10:00:00Z' }, // 6 day
+      { published_at: '2025-01-02T10:00:00Z' }  // 2 day
+    ] as Release[];
+    const value = new LeadTime(pulls, releases).getLeadTime();
+    expect(value).toBe(6); // (10+6+3)/3
+  })
 })

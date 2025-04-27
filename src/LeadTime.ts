@@ -55,6 +55,8 @@ export class LeadTime {
       return null;
     }
 
+    console.log(`Lead times (in days): ${leadTimes.map(lt => lt.toFixed(2)).join(', ')}`);
+
     const averageLeadTime =
       Math.round((leadTimes.reduce((p, c) => p + c) / leadTimes.length) * 100) / 100;
 
