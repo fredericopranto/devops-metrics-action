@@ -75,6 +75,8 @@ export async function run(): Promise<void> {
       pulls = await Promise.all(
         pulls.map(async pull => {
           const pullCommits = await adapterCommits.getCommitsFromUrl(pull.commits_url);
+          const branch = await adapterCommits.getDefaultBranch(pull.base.repo.owner.login, pull.base.repo.name);
+          pull.default_branch = branch;
           pull.commits = pullCommits as Commit[];
           return pull;
         })
@@ -96,7 +98,7 @@ export async function run(): Promise<void> {
       console.log('Deployment Frequency (level):', dfLevel);
 
       // Lead Time
-      const lt = new LeadTime(pulls, releases, adapterCommits);
+      const lt = new LeadTime(pulls, releases);
       const ltValue = await lt.getLeadTime();
       if (ltValue === null ) { nullResults.push({ repository, category, metric: 'Lead Time' }); continue; }
       const ltLevel = DORAMetricsEvaluator.evaluateLeadTime(ltValue);

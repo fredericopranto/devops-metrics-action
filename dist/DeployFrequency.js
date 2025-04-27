@@ -1,16 +1,16 @@
-const ONE_DAY = 1000 * 60 * 60 * 24;
+const ONE_DAY = 24 * 60 * 60 * 1000;
 export class DeployFrequency {
-    releases = new Array();
+    releases;
     startDate;
     endDate;
     constructor(releases, startDate, endDate) {
-        this.releases = releases;
         if (startDate && isNaN(new Date(startDate).getTime())) {
             throw new Error('Invalid start date format');
         }
         if (endDate && isNaN(new Date(endDate).getTime())) {
             throw new Error('Invalid end date format');
         }
+        this.releases = releases;
         this.releases.forEach(release => {
             const releaseDate = new Date(release.published_at || release.created_at);
             if (isNaN(releaseDate.getTime())) {

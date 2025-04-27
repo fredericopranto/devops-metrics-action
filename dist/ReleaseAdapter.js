@@ -22,10 +22,6 @@ export class ReleaseAdapter {
                     per_page: 50,
                     page,
                 };
-                const baseUrl = `https://api.github.com/repos/${this.owner}/${this.repo}/releases`;
-                const queryParams = `?per_page=${params.per_page}&page=${params.page}`;
-                const fullUrl = `${baseUrl}${queryParams}`;
-                //console.log(`Requesting URL: ${fullUrl}`);
                 const response = await this.octokit.request('GET /repos/{owner}/{repo}/releases', params);
                 const nextPage = response.data;
                 result = result.concat(nextPage);
@@ -44,8 +40,7 @@ export class ReleaseAdapter {
                     return false;
                 return true;
             });
-            const rateLimit = await this.octokit.request('GET /rate_limit');
-            //console.log('Rate Limit:', rateLimit.data.rate);
+            //console.log('Rate Limit:', await this.octokit.request('GET /rate_limit'))
             if (filteredReleases.length > 0) {
                 const sortedReleases = filteredReleases.sort((a, b) => new Date(a.published_at || a.created_at).getTime() - new Date(b.published_at || a.created_at).getTime());
                 const firstRelease = sortedReleases[0];

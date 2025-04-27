@@ -16,4 +16,5 @@ export interface PullRequest {
   };
   title: string;
   commits?: Commit[];
+  default_branch?: string;
 }

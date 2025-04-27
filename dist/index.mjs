@@ -58,14 +58,15 @@ export async function run() {
             let pulls = (await adapterPR.GetAllPRs()) || [];
             pulls = await Promise.all(pulls.map(async (pull) => {
                 const pullCommits = await adapterCommits.getCommitsFromUrl(pull.commits_url);
+                const branch = await adapterCommits.getDefaultBranch(pull.base.repo.owner.login, pull.base.repo.name);
+                pull.default_branch = branch;
                 pull.commits = pullCommits;
                 return pull;
             }));
             console.log('Total issues: ', issues.length);
             console.log('Total releases: ', releases.length);
             console.log('Total pulls: ', pulls.length);
-            const totalCommits = pulls.reduce((sum, pull) => sum + (pull.commits?.length || 0), 0);
-            console.log('Total commits: ', totalCommits);
+            console.log('Total commits: ', pulls.reduce((sum, pull) => sum + (pull.commits?.length || 0), 0));
             // Deployment Frequency
             const df = new DeployFrequency(releases, startDate, endDate);
             const dfDays = df.rate();
@@ -79,7 +80,7 @@ export async function run() {
             console.log('Deployment Frequency (deploy/month):', dfValue);
             console.log('Deployment Frequency (level):', dfLevel);
             // Lead Time
-            const lt = new LeadTime(pulls, releases, adapterCommits);
+            const lt = new LeadTime(pulls, releases);
             const ltValue = await lt.getLeadTime();
             if (ltValue === null) {
                 nullResults.push({ repository, category, metric: 'Lead Time' });

@@ -1,15 +1,13 @@
 import { Release } from './types/Release.js';
 
-const ONE_DAY = 1000 * 60 * 60 * 24;
+const ONE_DAY = 24 * 60 * 60 * 1000;
 
 export class DeployFrequency {
-  releases: Release[] = new Array<Release>();
+  releases: Release[];
   startDate?: Date;
   endDate?: Date;
 
   constructor(releases: Release[], startDate?: Date | null, endDate?: Date | null) {
-    this.releases = releases as Release[];
-
     if (startDate && isNaN(new Date(startDate).getTime())) {
       throw new Error('Invalid start date format');
     }
@@ -18,6 +16,7 @@ export class DeployFrequency {
       throw new Error('Invalid end date format');
     }
 
+    this.releases = releases;
     this.releases.forEach(release => {
       const releaseDate = new Date(release.published_at || release.created_at);
       if (isNaN(releaseDate.getTime())) {
@@ -30,6 +29,7 @@ export class DeployFrequency {
       : (this.releases.length > 0
           ? new Date(new Date(this.releases[0].published_at || this.releases[0].created_at).toISOString().split('T')[0])
           : new Date(0));
+          
     this.endDate = endDate
       ? new Date(endDate.toISOString().split('T')[0])
       : new Date(new Date().toISOString().split('T')[0]);

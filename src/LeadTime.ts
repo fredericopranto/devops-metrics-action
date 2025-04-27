@@ -1,37 +1,16 @@
 import { PullRequest } from './types/PullRequest.js';
 import { Release } from './types/Release.js';
-import { ICommitsAdapter } from './interfaces/ICommitsAdapter.js';
 import { Commit } from './types/Commit.js';
 
 const ONE_DAY = 24 * 60 * 60 * 1000;
 
 export class LeadTime {
-  log: string[] = [];
   pulls: PullRequest[];
-  releases: {
-    published: number;
-    url: string;
-    name: string;
-    published_at: string;
-  }[];
-  commitsAdapter: ICommitsAdapter;
+  releases: Release[];
 
-  constructor(
-    pulls: PullRequest[],
-    releases: Release[],
-    commitsAdapter: ICommitsAdapter
-  ) {
-    this.commitsAdapter = commitsAdapter;
+  constructor(pulls: PullRequest[], releases: Release[]) {
     this.pulls = pulls;
-    this.releases = releases.map((r) => {
-      return {
-        published: +new Date(r.published_at || r.created_at),
-        url: r.url,
-        name: r.name,
-        published_at: r.published_at || r.created_at,
-      };
-    });
-
+    this.releases = releases;
   }
 
   async getLeadTime(): Promise<number | null>{
@@ -40,41 +19,26 @@ export class LeadTime {
     }
 
     const leadTimes: number[] = [];
-    let processedCount = 0;
 
     for (const pull of this.pulls) {
-      processedCount++;
-      //console.log(`Processing PR ${processedCount}/${this.pulls.length}: ${pull.title}`);
-
-      const branch = await this.commitsAdapter.getDefaultBranch(pull.base.repo.owner.login, pull.base.repo.name);
 
       if (
-        typeof pull.merged_at === 'string' &&
-        pull.merged_at &&
-        typeof pull.base.repo.name === 'string' &&
-        pull.base.repo.name &&
-        pull.base.ref === branch
-      ) {
+        typeof pull.merged_at === 'string' && pull.merged_at &&
+        typeof pull.base.repo.name === 'string' && pull.base.repo.name &&
+        pull.base.ref === pull.default_branch)
+      {
         const mergeTime = +new Date(pull.merged_at);
 
         const laterReleases = this.releases.filter(
-          (r) => r.published > mergeTime && r.url.includes(pull.base.repo.name)
+          (r) => +new Date(r.published_at || r.created_at) > mergeTime && r.url.includes(pull.base.repo.name)
         );
         if (laterReleases.length === 0) {
           continue;
         }
 
-        const deployTime: number = laterReleases[0].published;
+        const deployTime: number = +new Date(laterReleases[0].published_at || laterReleases[0].created_at);
 
-        const commits = (await this.commitsAdapter.getCommitsFromUrl(
-          pull.commits_url
-        )) as Commit[];
-
-        if (commits.length === 0) {
-          continue;
-        }
-
-        const commitTime: number = commits
+        const commitTime: number = pull.commits!
           .map((c) => +new Date(c.commit.committer.date))
           .sort((a, b) => a - b)[0];
 

@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Octokit } from '@octokit/core';
-import * as core from '@actions/core';
 import type { IPullRequestsAdapter } from './interfaces/IPullRequestsAdapter.js';
 import type { PullRequest } from './types/PullRequest.js';
 
@@ -32,7 +31,6 @@ export class PullRequestsAdapter implements IPullRequestsAdapter {
       return result;
     } catch (e: any) {
       console.error(`Error fetching pull requests for repository "${this.repo}": ${e.message}`);
-      core.setFailed(e.message);
       return [];
     }
   }

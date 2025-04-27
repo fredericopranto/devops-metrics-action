@@ -1,4 +1,3 @@
-import * as core from '@actions/core';
 export class PullRequestsAdapter {
     octokit;
     owner;
@@ -24,7 +23,6 @@ export class PullRequestsAdapter {
         }
         catch (e) {
             console.error(`Error fetching pull requests for repository "${this.repo}": ${e.message}`);
-            core.setFailed(e.message);
             return [];
         }
     }

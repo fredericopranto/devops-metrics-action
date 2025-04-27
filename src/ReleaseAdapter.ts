@@ -30,11 +30,6 @@ export class ReleaseAdapter implements IReleaseAdapter {
           page,
         };
 
-        const baseUrl = `https://api.github.com/repos/${this.owner}/${this.repo}/releases`;
-        const queryParams = `?per_page=${params.per_page}&page=${params.page}`;
-        const fullUrl = `${baseUrl}${queryParams}`;
-        //console.log(`Requesting URL: ${fullUrl}`);
-
         const response = await this.octokit.request(
           'GET /repos/{owner}/{repo}/releases',
           params
@@ -57,9 +52,6 @@ export class ReleaseAdapter implements IReleaseAdapter {
         if (until && publishedAt > until) return false;
         return true;
       });
-
-      const rateLimit = await this.octokit.request('GET /rate_limit');
-      //console.log('Rate Limit:', rateLimit.data.rate);
 
       if (filteredReleases.length > 0) {
         const sortedReleases = filteredReleases.sort((a, b) =>
