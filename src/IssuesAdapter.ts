@@ -8,23 +8,11 @@ export class IssuesAdapter implements IIssuesAdapter {
   octokit: Octokit;
   owner: string;
   repo: string;
-  today: Date;
 
   constructor(octokit: Octokit, owner: string, repo: string) {
-    const agent = new https.Agent({
-      rejectUnauthorized: false, 
-    });
-
-    this.octokit = new Octokit({
-      auth: octokit.auth,
-      request: {
-        agent,
-      },
-    });
-
+    this.octokit = octokit;
     this.owner = owner;
     this.repo = repo;
-    this.today = new Date();
   }
 
   async GetAllIssues(since?: Date): Promise<Issue[] | null> {
@@ -34,6 +22,7 @@ export class IssuesAdapter implements IIssuesAdapter {
       let nextPage: Issue[] = [];
 
       do {
+        console.log(`>>>>>>>> Fetching issues from page ${page}`);
         nextPage = await this.getIssues(page, since);
         result = result.concat(nextPage);
         page++;
@@ -63,19 +52,37 @@ export class IssuesAdapter implements IIssuesAdapter {
       params.since = since.toISOString();
     }
 
-    const result = await this.octokit.request(
-      'GET /repos/{owner}/{repo}/issues',
-      params
-    );
+    const agent = new https.Agent({
+      rejectUnauthorized: false,
+    });
+
+    console.log(`Fetching issues with params:`, params);
+
+    let result;
+    try {
+      result = await this.octokit.request(
+        'GET /repos/{owner}/{repo}/issues',
+        {
+          ...params,
+          request: {
+            agent,
+          },
+        }
+      );
+    } catch (error: any) {
+      if (error.status === 401) {
+        console.error(`Authentication failed: ${error.message}`);
+        throw new Error('Access denied: Invalid or insufficient permissions for the provided token.');
+      }
+      console.error(`####### Error fetching issues from GitHub API: ${error.message}`);
+      throw error;
+    }
 
     if (!Array.isArray(result.data)) {
       throw new Error(`Unexpected API response: ${JSON.stringify(result.data)}`);
     }
 
-    console.log(`namespace: ${this.owner}/${this.repo}`);
     console.log(`Fetched ${result.data.length} issues from page ${page}`);
-    console.log(`Fetched ${result.data} issues from page ${page}`);
-    console.log(`Request Params:`, params);
 
     const issues = result.data.filter((issue: any) => !issue.pull_request);
 

@@ -1,2 +1,2 @@
 Repository,Category,Deployment Frequency (DF),DF Level,Lead Time (days),LT Level,Change Failure Rate (CFR),CFR Level,Mean Time to Restore (MTTR),MTTR Level
-${r.repository},${r.category},${r.dfValue},${r.dfLevel},${r.ltValue},${r.ltLevel},${r.cfrValue},${r.cfrLevel},${r.mttrValue},${r.mttrLevel}
+fredericopranto/mock,ML,0.54,Alta,2.20,Alta,29,Alta,1.9,Alta

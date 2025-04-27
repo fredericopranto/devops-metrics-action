@@ -22,20 +22,18 @@ export class MeanTimeToRestore {
         for (const bug of bugs) {
             const createdAt = +new Date(bug.created_at);
             const closedAt = +new Date(bug.closed_at);
-            const repoName = bug.repository_url.split('/').reverse()[0];
             if (!bug.closed_at) {
                 continue;
             }
-            if (!this.hasLaterRelease(closedAt, repoName)) {
+            if (!this.hasLaterRelease(closedAt)) {
                 continue;
             }
-            if (!this.hasPreviousRelease(createdAt, repoName)) {
+            if (!this.hasPreviousRelease(createdAt)) {
                 continue;
             }
             values.push({
                 start: createdAt,
-                end: closedAt,
-                repo: repoName,
+                end: closedAt
             });
         }
         return values;
@@ -49,31 +47,31 @@ export class MeanTimeToRestore {
         }
         return bugs;
     }
-    hasPreviousRelease(date, repo) {
-        return (this.releaseDates.filter(r => r.published < date && r.url.includes(repo))
+    hasPreviousRelease(date) {
+        return (this.releaseDates.filter(r => r.published < date)
             .length > 0);
     }
-    getReleaseBefore(date, repo) {
-        const rdates = this.releaseDates.filter(r => r.published < date && r.url.includes(repo));
+    getReleaseBefore(date) {
+        const rdates = this.releaseDates.filter(r => r.published < date);
         if (rdates.length === 0) {
             throw new Error('No previous releases');
         }
         return rdates.pop();
     }
-    getReleaseAfter(date, repo) {
-        const rdates = this.releaseDates.filter(r => r.published > date && r.url.includes(repo));
+    getReleaseAfter(date) {
+        const rdates = this.releaseDates.filter(r => r.published > date);
         if (rdates.length === 0) {
             throw new Error('No later releases');
         }
         return rdates.reverse().pop();
     }
-    hasLaterRelease(date, repo) {
-        return (this.releaseDates.filter(r => r.published > date && r.url.includes(repo))
+    hasLaterRelease(date) {
+        return (this.releaseDates.filter(r => r.published > date)
             .length > 0);
     }
     getRestoreTime(bug) {
-        const prevRel = this.getReleaseBefore(bug.start, bug.repo);
-        const nextRel = this.getReleaseAfter(bug.end, bug.repo);
+        const prevRel = this.getReleaseBefore(bug.start);
+        const nextRel = this.getReleaseAfter(bug.end);
         return nextRel.published - prevRel.published;
     }
     mttr() {

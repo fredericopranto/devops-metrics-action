@@ -1,14 +1,13 @@
 import * as core from '@actions/core';
+import https from 'https'; // Importa o módulo HTTPS para configurar o agente
 export class IssuesAdapter {
     octokit;
     owner;
     repo;
-    today;
     constructor(octokit, owner, repo) {
         this.octokit = octokit;
         this.owner = owner;
         this.repo = repo;
-        this.today = new Date();
     }
     async GetAllIssues(since) {
         try {
@@ -16,13 +15,11 @@ export class IssuesAdapter {
             let page = 1;
             let nextPage = [];
             do {
-                //console.log(`Fetching issues for repository "${this.repo}", page ${page}...`);
+                console.log(`>>>>>>>> Fetching issues from page ${page}`);
                 nextPage = await this.getIssues(page, since);
-                //console.log(`Fetched ${nextPage.length} issues from page ${page}`);
                 result = result.concat(nextPage);
                 page++;
             } while (nextPage.length === 50);
-            //console.log(`Total issues fetched for repository "${this.repo}": ${result.length}`);
             return result;
         }
         catch (e) {
@@ -45,10 +42,32 @@ export class IssuesAdapter {
         if (since) {
             params.since = since.toISOString();
         }
-        const result = await this.octokit.request('GET /repos/{owner}/{repo}/issues', params);
-        // Filtrar apenas issues (excluindo pull requests)
+        const agent = new https.Agent({
+            rejectUnauthorized: false,
+        });
+        console.log(`Fetching issues with params:`, params);
+        let result;
+        try {
+            result = await this.octokit.request('GET /repos/{owner}/{repo}/issues', {
+                ...params,
+                request: {
+                    agent,
+                },
+            });
+        }
+        catch (error) {
+            if (error.status === 401) {
+                console.error(`Authentication failed: ${error.message}`);
+                throw new Error('Access denied: Invalid or insufficient permissions for the provided token.');
+            }
+            console.error(`####### Error fetching issues from GitHub API: ${error.message}`);
+            throw error;
+        }
+        if (!Array.isArray(result.data)) {
+            throw new Error(`Unexpected API response: ${JSON.stringify(result.data)}`);
+        }
+        console.log(`Fetched ${result.data.length} issues from page ${page}`);
         const issues = result.data.filter((issue) => !issue.pull_request);
-        //console.log(`Fetched ${issues.length} issues for repo: "${this.repo}", page: ${page}`);
         return issues;
     }
 }
