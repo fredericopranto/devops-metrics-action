@@ -76,20 +76,13 @@ describe('LeadTime ', () => {
     expect(value).toBe(null);
   })
   it('should return null when the release occurs before the pull request is merged', () => {
-    const commits = [
-      {
-        commit: {
-          committer: {
-            date: '2025-01-01T15:00:00Z'
-          }
-        }
-      } 
-    ] as Commit[];  
     const pulls = [
       {
         merged_at: '2025-01-01T20:00:00Z',
         base: {ref: 'main', repo: {name: 'dora'}}, 
-        commits: commits
+        commits: [
+          { commit: { committer: { date: '2025-01-01T15:00:00Z' } } }, 
+        ]
       }
     ] as PullRequest[]
     const releases = [
@@ -101,20 +94,13 @@ describe('LeadTime ', () => {
     expect(value).toBe(null)
   })
   it('should return null when the pull request is merged before the release, but the commit occurs after the release', () => {
-    const commits = [
-      {
-        commit: {
-          committer: {
-            date: '2025-01-02T15:00:00Z'
-          }
-        }
-      } 
-    ] as Commit[];  
     const pulls = [
       {
         merged_at: '2025-01-01T20:00:00Z',
         base: {ref: 'main', repo: {name: 'dora'}}, 
-        commits: commits
+        commits: [
+          { commit: { committer: { date: '2025-01-02T15:00:00Z' } } }
+        ]
       }
     ] as PullRequest[]
     const releases = [
@@ -126,20 +112,13 @@ describe('LeadTime ', () => {
     expect(value).toBe(null)
   })
   it('should return a Lead Time of 0 day when the release occurs at the same datetime to the commit', () => {
-    const commits = [
-      {
-        commit: {
-          committer: {
-            date: '2025-01-01T10:00:00Z'
-          }
-        }
-      } 
-    ] as Commit[];  
     const pulls = [
       {
         merged_at: '2025-01-01T10:00:00Z',
         base: {ref: 'main', repo: {name: 'dora'}}, 
-        commits: commits
+        commits: [
+          { commit: { committer: { date: '2025-01-01T10:00:00Z' } } }, 
+        ]
       }
     ] as PullRequest[]
     const releases = [
@@ -150,21 +129,14 @@ describe('LeadTime ', () => {
     const value = new LeadTime(pulls, releases).getLeadTime();
     expect(value).toBe(0)
   })
-  it('should return a Lead Time of 1 day when the commit occurs 1 day before the release', () => {
-    const commits = [
-      {
-        commit: {
-          committer: {
-            date: '2025-01-01T10:00:00Z'
-          }
-        }
-      } 
-    ] as Commit[];  
+  it('should return a Lead Time of 1 day when 1 commit occurs 1 day before the release', () => {
     const pulls = [
       {
         merged_at: '2025-01-01T15:00:00Z',
         base: {ref: 'main', repo: {name: 'dora'}}, 
-        commits: commits
+        commits: [
+          { commit: { committer: { date: '2025-01-01T10:00:00Z' } } }, 
+        ]
       }
     ] as PullRequest[]
     const releases = [
@@ -175,90 +147,84 @@ describe('LeadTime ', () => {
     const value = new LeadTime(pulls, releases).getLeadTime();
     expect(value).toBe(1)
   })
-  // it('return 11 on pull-requests with two commits', () => {
-  //   const pulls = [
-  //     {
-  //       merged_at: '2023-04-29T17:50:53Z', // 30-19 = 11
-  //       base: {ref: 'main', repo: {name: 'devops-metrics-action'}}
-  //     }
-  //   ] as PullRequest[]
-  //   const rels = [
-  //     {
-  //       url: 'https://api.github.com/repos/stenjo/devops-metrics-action/releases/101411508',
-  //       published_at: '2023-04-30T17:50:53Z'
-  //     }
-  //   ] as Release[]
-
-  //   const lt = new LeadTime(pulls, rels)
-
-  //   const leadTime = await lt.getLeadTime()
-
-  //   expect(leadTime).toBe(11)
-  // })
-
-  // it('return 10.5 on pull-requests with two pulls on different repos', () => {
-  //   const pulls = [
-  //     {
-  //       merged_at: '2023-04-29T17:50:53Z', // 30-19 = 11
-  //       base: {ref: 'main', repo: {name: 'devops-metrics-action'}}
-  //     },
-  //     {
-  //       merged_at: '2023-04-28T17:50:53Z', // 29-19 = 10
-  //       base: {ref: 'main', repo: {name: 'other-repo'}}
-  //     }
-  //   ] as PullRequest[]
-  //   const rels = [
-  //     {
-  //       url: 'https://api.github.com/repos/stenjo/devops-metrics-action/releases/101411508',
-  //       published_at: '2023-04-30T17:50:53Z'
-  //     },
-  //     {
-  //       url: 'https://api.github.com/repos/stenjo/other-repo/releases/101411508',
-  //       published_at: '2023-04-29T17:50:53Z'
-  //     }
-  //   ] as Release[]
-
-  //   const lt = new LeadTime(pulls, rels)
-
-  //   const leadTime = await lt.getLeadTime()
-
-  //   expect(leadTime).toBe(10.5)
-  // })
-
-  // it('return 8.5 on two pull-requests with two commits', () => {
-  //   const pulls = [
-  //     {
-  //       merged_at: '2023-04-29T17:50:53Z', // 30-19 = 11
-  //       commits_url: '47',
-  //       base: {ref: 'main', repo: {name: 'devops-metrics-action'}}
-  //     },
-  //     {
-  //       merged_at: '2023-04-27T17:50:53Z', // 28-22 = 6
-  //       commits_url: '10',
-  //       base: {ref: 'main', repo: {name: 'devops-metrics-action'}}
-  //     }
-  //   ] as PullRequest[]
-  //   const rels = [
-  //     {
-  //       url: 'https://api.github.com/repos/stenjo/devops-metrics-action/releases/101411508',
-  //       published_at: '2023-04-28T17:50:53Z'
-  //     },
-  //     {
-  //       url: 'https://api.github.com/repos/stenjo/devops-metrics-action/releases/101411508',
-  //       published_at: '2023-04-30T17:50:53Z'
-  //     },
-  //     {
-  //       url: 'https://api.github.com/repos/stenjo/devops-metrics-action/releases/101411508',
-  //       published_at: '2023-04-02T17:50:53Z'
-  //     }
-  //   ] as Release[]
-  //   const lt = new LeadTime(pulls, rels)
-
-  //   const leadTime = await lt.getLeadTime()
-
-  //   expect(leadTime).toBe(8.5) // (11+6)/2
-  // })
-
+  it('should return a Lead Time of 1 day when 5 commits occurs 1 day before the release', () => {
+    const pulls = [
+      {
+        merged_at: '2025-01-01T15:00:00Z',
+        base: {ref: 'main', repo: {name: 'dora'}}, 
+        commits: [
+          { commit: { committer: { date: '2025-01-01T10:00:00Z' } } }, 
+          { commit: { committer: { date: '2025-01-01T11:00:00Z' } } }, 
+          { commit: { committer: { date: '2025-01-01T12:00:00Z' } } }, 
+          { commit: { committer: { date: '2025-01-01T13:00:00Z' } } }, 
+          { commit: { committer: { date: '2025-01-01T14:00:00Z' } } }, 
+        ]
+      }
+    ] as PullRequest[]
+    const releases = [
+      {
+        published_at: '2025-01-02T10:00:00Z'
+      }
+    ] as Release[];
+    const value = new LeadTime(pulls, releases).getLeadTime();
+    expect(value).toBe(1)
+  })
+  it('should return a Lead Time of 6 day when 2 commits occurs 1 day before 2 releases', () => {
+    const pulls = [
+      {
+        merged_at: '2025-01-10T10:00:00Z',
+        base: {ref: 'main', repo: {name: 'dora'}}, 
+        commits: [
+          { commit: { committer: { date: '2025-01-10T10:00:00Z' } } }, 
+        ]
+      },
+      {
+        merged_at: '2025-01-12T10:00:00Z',
+        base: {ref: 'main', repo: {name: 'dora'}}, 
+        commits: [
+          { commit: { committer: { date: '2025-01-12T10:00:00Z' } } }, 
+        ]
+      }
+    ] as PullRequest[];
+    const releases = [
+      { published_at: '2025-01-11T10:00:00Z' }, // 1 day
+      { published_at: '2025-01-23T10:00:00Z' }  // 11 days
+    ] as Release[];
+    const value = new LeadTime(pulls, releases).getLeadTime();
+    expect(value).toBe(6) // (1+11)/2
+  })
+  it('should return a Lead Time of 6.67 day when 2 commits occurs 1 day before 2 releases', () => {
+    const pulls = [
+      {
+      merged_at: '2025-01-29T10:00:00Z',
+      base: {ref: 'main', repo: {name: 'dora'}}, 
+      commits: [
+        { commit: { committer: { date: '2025-01-19T10:00:00Z' } } }, 
+      ]
+      },
+      {
+      merged_at: '2025-01-27T10:00:00Z',
+      base: {ref: 'main', repo: {name: 'dora'}}, 
+      commits: [
+        { commit: { committer: { date: '2025-01-22T10:00:00Z' } } }, 
+      ]
+      },
+      {
+      merged_at: '2025-01-29T10:00:00Z',
+      base: {ref: 'main', repo: {name: 'dora'}}, 
+      commits: [
+        { commit: { committer: { date: '2025-01-27T10:00:00Z' } } }
+      ]
+      }
+    ] as PullRequest[];
+    const releases = [
+      { published_at: '2025-01-30T10:00:00Z' }, // 11 day
+      { published_at: '2025-01-28T10:00:00Z' }, // 6 day
+      { published_at: '2025-01-02T10:00:00Z' }  // 3 day
+    ] as Release[];
+    const value = new LeadTime(pulls, releases).getLeadTime();
+    expect(value).toBe(6.67); (11+6+3)/3
+  })
   // it('return 6,67 on three pull-requests with one commit each', () => {
   //   const pulls = [
   //     {

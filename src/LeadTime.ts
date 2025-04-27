@@ -13,7 +13,6 @@ export class LeadTime {
   }
 
   getLeadTime(): number | null {
-    console.log(this.pulls.length, this.releases.length);
     if (this.pulls.length === 0 || this.releases.length === 0) {
       return null;
     }
@@ -29,7 +28,11 @@ export class LeadTime {
       {
         const mergeTime = +new Date(pull.merged_at);
 
-        const laterReleases = this.releases.filter(
+        const sortedReleases = this.releases.sort(
+          (a, b) => +new Date(a.published_at || a.created_at) - +new Date(b.published_at || b.created_at)
+        );
+
+        const laterReleases = sortedReleases.filter(
           (r) => +new Date(r.published_at || r.created_at) >= mergeTime
         );
 
@@ -54,6 +57,7 @@ export class LeadTime {
 
     const averageLeadTime =
       Math.round((leadTimes.reduce((p, c) => p + c) / leadTimes.length) * 100) / 100;
+
     return averageLeadTime;
   }
 }
