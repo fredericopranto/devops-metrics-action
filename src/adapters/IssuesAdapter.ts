@@ -1,7 +1,7 @@
 import { Octokit } from '@octokit/core';
 import * as core from '@actions/core';
-import { IIssuesAdapter } from './interfaces/IIssuesAdapter.js';
-import { Issue } from './types/Issue.js';
+import { IIssuesAdapter } from '../interfaces/IIssuesAdapter.js';
+import { Issue } from '../types/Issue.js';
 import https from 'https'; // Importa o módulo HTTPS para configurar o agente
 
 export class IssuesAdapter implements IIssuesAdapter {
@@ -22,7 +22,6 @@ export class IssuesAdapter implements IIssuesAdapter {
       let nextPage: Issue[] = [];
 
       do {
-        console.log(`>>>>>>>> Fetching issues from page ${page}`);
         nextPage = await this.getIssues(page, since);
         result = result.concat(nextPage);
         page++;
@@ -56,8 +55,6 @@ export class IssuesAdapter implements IIssuesAdapter {
       rejectUnauthorized: false,
     });
 
-    console.log(`Fetching issues with params:`, params);
-
     let result;
     try {
       result = await this.octokit.request(
@@ -81,8 +78,6 @@ export class IssuesAdapter implements IIssuesAdapter {
     if (!Array.isArray(result.data)) {
       throw new Error(`Unexpected API response: ${JSON.stringify(result.data)}`);
     }
-
-    console.log(`Fetched ${result.data.length} issues from page ${page}`);
 
     const issues = result.data.filter((issue: any) => !issue.pull_request);
 

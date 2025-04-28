@@ -1,7 +1,7 @@
 import { Octokit } from '@octokit/core';
 import * as core from '@actions/core';
-import type { Release } from './types/Release.js';
-import type { IReleaseAdapter } from './interfaces/IReleaseAdapter.js';
+import type { Release } from '../types/Release.js';
+import type { IReleaseAdapter } from '../interfaces/IReleaseAdapter.js';
 
 export class ReleaseAdapter implements IReleaseAdapter {
   octokit: Octokit;

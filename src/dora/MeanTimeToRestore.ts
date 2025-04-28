@@ -1,5 +1,5 @@
-import {Issue} from './types/Issue.js'
-import {Release} from './types/Release.js'
+import {Issue} from '../types/Issue.js'
+import {Release} from '../types/Release.js'
 
 export interface BugTime {
   start: number

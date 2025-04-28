@@ -1,4 +1,4 @@
-import { Release } from './types/Release.js';
+import { Release } from '../types/Release.js';
 
 const ONE_DAY = 24 * 60 * 60 * 1000;
 

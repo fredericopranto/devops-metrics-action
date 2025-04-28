@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Octokit } from '@octokit/core';
-import { Commit } from './types/Commit.js';
-import { ICommitsAdapter } from './interfaces/ICommitsAdapter.js';
+import { Commit } from '../types/Commit.js';
+import { ICommitsAdapter } from '../interfaces/ICommitsAdapter.js';
 
 export class CommitsAdapter implements ICommitsAdapter {
   octokit: Octokit;

@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Octokit } from '@octokit/core';
-import type { IPullRequestsAdapter } from './interfaces/IPullRequestsAdapter.js';
-import type { PullRequest } from './types/PullRequest.js';
+import type { IPullRequestsAdapter } from '../interfaces/IPullRequestsAdapter.js';
+import type { PullRequest } from '../types/PullRequest.js';
 
 export class PullRequestsAdapter implements IPullRequestsAdapter {
   octokit: Octokit;

@@ -1,12 +1,12 @@
 import { Octokit } from '@octokit/rest';
-import { ReleaseAdapter } from './ReleaseAdapter.js';
-import { IssuesAdapter } from './IssuesAdapter.js';
-import { PullRequestsAdapter } from './PullRequestsAdapter.js';
-import { CommitsAdapter } from './CommitsAdapter.js';
-import { DeployFrequency } from './DeployFrequency.js';
-import { LeadTime } from './LeadTime.js';
-import { ChangeFailureRate } from './ChangeFailureRate.js';
-import { MeanTimeToRestore } from './MeanTimeToRestore.js';
+import { ReleaseAdapter } from './adapters/ReleaseAdapter.js';
+import { IssuesAdapter } from './adapters/IssuesAdapter.js';
+import { PullRequestsAdapter } from './adapters/PullRequestsAdapter.js';
+import { CommitsAdapter } from './adapters/CommitsAdapter.js';
+import { DeployFrequency } from './dora/DeployFrequency.js';
+import { LeadTime } from './dora/LeadTime.js';
+import { ChangeFailureRate } from './dora/ChangeFailureRate.js';
+import { MeanTimeToRestore } from './dora/MeanTimeToRestore.js';
 import { DORAMetricsEvaluator } from './DORAMetricsEvaluator.js';
 import { Commit } from './types/Commit.js';
 

@@ -1,5 +1,5 @@
-import { PullRequest } from './types/PullRequest.js';
-import { Release } from './types/Release.js';
+import { PullRequest } from '../types/PullRequest.js';
+import { Release } from '../types/Release.js';
 
 const ONE_DAY = 24 * 60 * 60 * 1000;
 
@@ -54,8 +54,6 @@ export class LeadTime {
     if (leadTimes.length === 0) {
       return null;
     }
-
-    console.log(`Lead times (in days): ${leadTimes.map(lt => lt.toFixed(2)).join(', ')}`);
 
     const averageLeadTime =
       Math.round((leadTimes.reduce((p, c) => p + c) / leadTimes.length) * 100) / 100;

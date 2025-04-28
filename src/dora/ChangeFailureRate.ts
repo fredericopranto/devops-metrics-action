@@ -1,8 +1,8 @@
 import dotenv from 'dotenv';
 dotenv.config();
 
-import type { Issue } from './types/Issue.js';
-import type { Release } from './types/Release.js';
+import type { Issue } from '../types/Issue.js';
+import type { Release } from '../types/Release.js';
 
 export class ChangeFailureRate {
   issues: Issue[];
