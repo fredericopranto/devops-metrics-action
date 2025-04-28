@@ -22,4 +22,27 @@ export class MetricsExporter {
     fs.writeFileSync(nullOutputPath, nullCsvContent);
     console.log('Null metrics CSV generated at:', nullOutputPath);
   }
+
+  static exportToConsole(results: any[], nullResults: any[]) {
+    console.log('\n=== Metrics Report ===');
+    console.log('Repository, Category, Deployment Frequency (DF), DF Level, Lead Time (days), LT Level, Change Failure Rate (CFR), CFR Level, Mean Time to Restore (MTTR), MTTR Level');
+    
+    if (results.length === 0) {
+      console.log('No metrics available.');
+    } else {
+      results.forEach(r => {
+        console.log(
+          `${r.repository}, ${r.category}, ${r.dfValue}, ${r.dfLevel}, ${r.ltValue}, ${r.ltLevel}, ${r.cfrValue}, ${r.cfrLevel}, ${r.mttrValue}, ${r.mttrLevel}`
+        );
+      });
+    }
+
+    if (nullResults.length > 0) {
+      console.log('\n=== Null Metrics Report ===');
+      console.log('Repository, Category, Metric');
+      nullResults.forEach(r => {
+        console.log(`${r.repository}, ${r.category}, ${r.metric}`);
+      });
+    }
+  }
 }

@@ -6,7 +6,7 @@ import { DeployFrequency } from './dora/DeployFrequency.js';
 import { LeadTime } from './dora/LeadTime.js';
 import { ChangeFailureRate } from './dora/ChangeFailureRate.js';
 import { MeanTimeToRestore } from './dora/MeanTimeToRestore.js';
-import { DORAMetricsEvaluator } from './DORAMetricsEvaluator.js';
+import { DORAMetricsEvaluator } from './DORALevelEvaluator.js';
 export class MetricsGenerator {
     octokit;
     constructor(octokit) {
@@ -29,8 +29,8 @@ export class MetricsGenerator {
             pull.commits = pullCommits;
             return pull;
         }));
-        console.log('Total issues:', issues.length);
         console.log('Total releases:', releases.length);
+        console.log('Total issues:', issues.length);
         console.log('Total pulls:', pulls.length);
         console.log('Total commits:', pulls.reduce((sum, pull) => sum + (pull.commits?.length || 0), 0));
         // Deployment Frequency

@@ -78,6 +78,9 @@ export class MeanTimeToRestore {
         if (this.releases === null || this.releases.length === 0) {
             return null;
         }
+        if (this.issues === null || this.issues.length === 0) {
+            return null;
+        }
         const ttr = this.getBugCount().map(bug => {
             return this.getRestoreTime(bug);
         });
@@ -88,8 +91,7 @@ export class MeanTimeToRestore {
         for (const ttrElement of ttr) {
             sum += ttrElement;
         }
-        const mttr = Math.round((sum / ttr.length / ONE_DAY) * 100) / 100;
-        return mttr;
+        return Math.round((sum / ttr.length / ONE_DAY) * 100) / 100;
     }
 }
 //# sourceMappingURL=MeanTimeToRestore.js.map

@@ -45,8 +45,11 @@ async function run() {
                 console.error(`Error processing repository "${repository}":`, error.message);
                 nullResults.push({ repository, category, metric: error.message });
             }
+            console.log(results);
+            MetricsExporter.exportToConsole(results, nullResults);
         }
         MetricsExporter.exportToCSV(results, nullResults, process.cwd());
+        console.log('Metrics generation completed successfully.');
     }
     catch (error) {
         console.error('Error running the project:', error.message);

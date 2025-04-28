@@ -36,7 +36,7 @@
     "test": "npx jest",
     "stryker": "npx stryker run",
     "all": "npm run format:write && npm run lint && npm run test && npm run coverage && npm run package",
-    "start": "npx tsc && node dist/index.mjs"
+    "start": "npx tsc && node --no-warnings dist/index.mjs"
   },
   "license": "MIT",
   "jest": {

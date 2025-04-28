@@ -7,7 +7,7 @@ import { DeployFrequency } from './dora/DeployFrequency.js';
 import { LeadTime } from './dora/LeadTime.js';
 import { ChangeFailureRate } from './dora/ChangeFailureRate.js';
 import { MeanTimeToRestore } from './dora/MeanTimeToRestore.js';
-import { DORAMetricsEvaluator } from './DORAMetricsEvaluator.js';
+import { DORAMetricsEvaluator } from './DORALevelEvaluator.js';
 import { Commit } from './types/Commit.js';
 
 export class MetricsGenerator {
@@ -39,8 +39,8 @@ export class MetricsGenerator {
       })
     );
 
-    console.log('Total issues:', issues.length);
     console.log('Total releases:', releases.length);
+    console.log('Total issues:', issues.length);
     console.log('Total pulls:', pulls.length);
     console.log('Total commits:', pulls.reduce((sum, pull) => sum + (pull.commits?.length || 0), 0));
 
