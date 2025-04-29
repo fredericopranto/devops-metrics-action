@@ -115,9 +115,9 @@ export class MeanTimeToRestore {
       return null;
     }
 
-    if (this.issues === null || this.issues.length === 0) {
-      return null;
-    }
+    // if (this.issues === null || this.issues.length === 0) {
+    //   return null;
+    // }
 
     const ttr: number[] = this.getBugCount().map(bug => {
       return this.getRestoreTime(bug);

@@ -37,6 +37,8 @@ export class MetricsGenerator {
         const df = new DeployFrequency(releases, startDate, endDate);
         const dfDays = df.rate();
         const dfValueDay = dfDays ? (1 / dfDays).toFixed(2) : 'null';
+        const dfValueWeek = dfDays ? (7 / dfDays).toFixed(2) : 'null';
+        const dfValueMonth = dfDays ? (30 / dfDays).toFixed(2) : 'null';
         const dfLevel = DORAMetricsEvaluator.evaluateDeploymentFrequency(dfDays);
         // Lead Time
         const lt = new LeadTime(pulls, releases);
@@ -48,8 +50,11 @@ export class MetricsGenerator {
         const cfrLevel = cfrValue !== null ? DORAMetricsEvaluator.evaluateChangeFailureRate(cfrValue) : 'null';
         // Mean Time to Restore
         const mttr = new MeanTimeToRestore(issues, releases);
-        const mttrValue = mttr.mttr();
-        const mttrLevel = mttrValue !== null ? DORAMetricsEvaluator.evaluateMTTR(mttrValue) : 'null';
+        const mttrValueDay = mttr.mttr();
+        const mttrValueWeek = mttrValueDay !== null ? (mttrValueDay / 7).toFixed(2) : 'null'; // Dividir por 7 para semanas
+        const mttrValueMonth = mttrValueDay !== null ? (mttrValueDay / 30).toFixed(2) : 'null'; // Dividir por 30 para meses
+        const mttrLevel = mttrValueDay !== null ? DORAMetricsEvaluator.evaluateMTTR(mttrValueDay) : 'null';
+        exportToConsole();
         return {
             repository,
             category,
@@ -59,9 +64,19 @@ export class MetricsGenerator {
             ltLevel,
             cfrValue: cfrValue || 'null',
             cfrLevel,
-            mttrValue: mttrValue || 'null',
+            mttrValue: mttrValueDay || 'null',
             mttrLevel,
         };
+        function exportToConsole() {
+            console.log('Deployment Frequency (DF) (Day):', dfValueDay, '| Level:', dfLevel);
+            console.log('Deployment Frequency (DF) (Week):', dfValueWeek);
+            console.log('Deployment Frequency (DF) (Month):', dfValueMonth);
+            console.log('Lead Time (LT):', ltValue?.toFixed(2) || 'null', 'days | Level:', ltLevel);
+            console.log('Change Failure Rate (CFR):', cfrValue || 'null', '% | Level:', cfrLevel);
+            console.log('Mean Time to Restore (MTTR) (Day):', mttrValueDay || 'null', '| Level:', mttrLevel);
+            console.log('Mean Time to Restore (MTTR) (Week):', mttrValueWeek);
+            console.log('Mean Time to Restore (MTTR) (Month):', mttrValueMonth);
+        }
     }
 }
 //# sourceMappingURL=MetricsGenerator.mjs.map

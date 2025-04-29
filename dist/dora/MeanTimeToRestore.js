@@ -78,9 +78,9 @@ export class MeanTimeToRestore {
         if (this.releases === null || this.releases.length === 0) {
             return null;
         }
-        if (this.issues === null || this.issues.length === 0) {
-            return null;
-        }
+        // if (this.issues === null || this.issues.length === 0) {
+        //   return null;
+        // }
         const ttr = this.getBugCount().map(bug => {
             return this.getRestoreTime(bug);
         });

@@ -1,5 +1,4 @@
 Repository,Category,Deployment Frequency (DF),DF Level,Lead Time (days),LT Level,Change Failure Rate (CFR),CFR Level,Mean Time to Restore (MTTR),MTTR Level
-yasserfarouk/negmas,ML,0.03,Baixa,-1244.50,Elite,null,Elite,null,Elite
-fredericopranto/devops-metrics-action,ML,0.06,Média,null,null,null,Elite,null,null
-fredericopranto/mock,ML,0.50,Alta,2.20,Alta,29,Alta,1.9,Alta
+fredericopranto/devops-metrics-action,ML,0.06,Média,null,null,null,Elite,null,Elite
+fredericopranto/mock,ML,0.47,Alta,2.20,Alta,29,Alta,1.9,Alta
 PythonOT/POT,ML,0.01,Baixa,NaN,Baixa,9,Elite,133.95,Média
