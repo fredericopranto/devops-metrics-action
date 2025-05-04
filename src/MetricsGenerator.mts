@@ -9,6 +9,7 @@ import { ChangeFailureRate } from './dora/ChangeFailureRate.js';
 import { MeanTimeToRestore } from './dora/MeanTimeToRestore.js';
 import { DORAMetricsEvaluator } from './DORALevelEvaluator.js';
 import { Commit } from './types/Commit.js';
+import { Logger } from './utils/Logger.js';
 
 export class MetricsGenerator {
   private octokit: Octokit;
@@ -17,7 +18,25 @@ export class MetricsGenerator {
     this.octokit = octokit;
   }
 
+  async checkRateLimit(): Promise<void> {
+    try {
+      const rateLimit = await this.octokit.request('GET /rate_limit');
+      const remaining = rateLimit.data.rate.remaining;
+      const resetTime = new Date(rateLimit.data.rate.reset * 1000).toISOString();
+  
+      Logger.info(`GitHub API Rate Limit: ${remaining} requests remaining. Reset at: ${resetTime}`);
+  
+      if (remaining <= 0) {
+        throw new Error(`Rate limit exceeded. Please wait until ${resetTime} to continue.`);
+      }
+    } catch (error: any) {
+      Logger.error(`Failed to fetch rate limit: ${error.message}`);
+      throw new Error('Unable to verify rate limit. Aborting execution.');
+    }
+  }
+
   async generateMetrics(repository: string, category: string, startDate?: Date | null, endDate?: Date | null) {
+    this.checkRateLimit();
     console.log(`>>>> Processing repository: ${repository} (Category: ${category})`);
 
     const [owner, repo] = repository.split('/');
@@ -27,22 +46,29 @@ export class MetricsGenerator {
     const adapterCommits = new CommitsAdapter(this.octokit);
 
     const releases = (await adapterRelease.GetAllReleases(startDate, endDate)) || [];
+    Logger.info(`Total releases: ${releases.length}`);
     const issues = (await adapterIssue.GetAllIssues()) || [];
+    Logger.info(`Total issues: ${issues.length}`);
     let pulls = (await adapterPR.GetAllPRs()) || [];
+    Logger.info(`Total pulls: ${pulls.length}`);
+
+    let defaultBranch: string | null = process.env.DEFAULT_BRANCH || null;
+
+    if (!defaultBranch) {
+      defaultBranch = await adapterCommits.getDefaultBranch(pulls[0].base.repo.owner.login, pulls[0].base.repo.name);
+    }
+
     pulls = await Promise.all(
-      pulls.map(async pull => {
+      pulls.map(async (pull, index) => {
         const pullCommits = await adapterCommits.getCommitsFromUrl(pull.commits_url);
-        const branch = await adapterCommits.getDefaultBranch(pull.base.repo.owner.login, pull.base.repo.name);
-        pull.default_branch = branch;
+        Logger.info(`Total pull commits (${index + 1}/${pulls.length}): ${pullCommits.length}`);
+
+        pull.default_branch = defaultBranch;
         pull.commits = pullCommits as Commit[];
         return pull;
       })
     );
-
-    console.log('Total releases:', releases.length);
-    console.log('Total issues:', issues.length);
-    console.log('Total pulls:', pulls.length);
-    console.log('Total commits:', pulls.reduce((sum, pull) => sum + (pull.commits?.length || 0), 0));
+    Logger.info(`Total commits: ${pulls.reduce((sum, pull) => sum + (pull.commits?.length || 0), 0)}`);
 
     // Deployment Frequency
     const df = new DeployFrequency(releases, startDate, endDate);

@@ -2,6 +2,7 @@ import { Octokit } from '@octokit/core';
 import * as core from '@actions/core';
 import type { Release } from '../types/Release.js';
 import type { IReleaseAdapter } from '../interfaces/IReleaseAdapter.js';
+import { Logger } from '../utils/Logger.js';
 
 export class ReleaseAdapter implements IReleaseAdapter {
   octokit: Octokit;
@@ -15,6 +16,7 @@ export class ReleaseAdapter implements IReleaseAdapter {
   }
 
   async GetAllReleases(since?: Date | null, until?: Date | null): Promise<Release[]> {
+    Logger.info(`Fetching all releases for repository "${this.repo}"...`);
     try {
       let result: Release[] = [];
       let page = 1;
@@ -26,7 +28,7 @@ export class ReleaseAdapter implements IReleaseAdapter {
           headers: {
             'X-GitHub-Api-Version': '2022-11-28',
           },
-          per_page: 50,
+          per_page: parseInt(process.env.ISSUES_PER_PAGE || '50'),
           page,
         };
 

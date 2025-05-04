@@ -38,10 +38,16 @@ async function run(): Promise<void> {
     console.log(`${repositories.length} repository(ies) loaded from projects.csv.`);
     console.log('Start Date:', startDate ? startDate.toISOString() : 'Not defined');
     console.log('End Date:', endDate ? endDate.toISOString() : 'Not defined');
+    
 
-    const octokit = new Octokit({ auth: token });
+    const octokit = new Octokit({
+      auth: token,
+      request: {
+        timeout: 10000
+      },
+    });
     const generator = new MetricsGenerator(octokit);
-
+    
     const results = [];
     const nullResults = [];
 

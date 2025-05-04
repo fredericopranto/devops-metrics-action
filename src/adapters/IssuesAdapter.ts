@@ -2,7 +2,11 @@ import { Octokit } from '@octokit/core';
 import * as core from '@actions/core';
 import { IIssuesAdapter } from '../interfaces/IIssuesAdapter.js';
 import { Issue } from '../types/Issue.js';
-import https from 'https'; // Importa o módulo HTTPS para configurar o agente
+import https from 'https';
+import { Logger } from '../utils/Logger.js';
+import dotenv from 'dotenv';
+
+dotenv.config();
 
 export class IssuesAdapter implements IIssuesAdapter {
   octokit: Octokit;
@@ -16,6 +20,7 @@ export class IssuesAdapter implements IIssuesAdapter {
   }
 
   async GetAllIssues(since?: Date): Promise<Issue[] | null> {
+    Logger.info(`Fetching all issues for repository "${this.repo}"...`);
     try {
       let result: Issue[] = [];
       let page = 1;
@@ -25,7 +30,7 @@ export class IssuesAdapter implements IIssuesAdapter {
         nextPage = await this.getIssues(page, since);
         result = result.concat(nextPage);
         page++;
-      } while (nextPage.length === 50);
+      } while (nextPage.length === parseInt(process.env.ISSUES_PER_PAGE || '50'));
 
       return result;
     } catch (e: any) {
@@ -42,7 +47,7 @@ export class IssuesAdapter implements IIssuesAdapter {
       headers: {
         'X-GitHub-Api-Version': '2022-11-28',
       },
-      per_page: 50,
+      per_page: parseInt(process.env.ISSUES_PER_PAGE || '50'),
       page,
       state: 'all',
     };

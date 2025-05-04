@@ -2,6 +2,7 @@
 import { Octokit } from '@octokit/core';
 import type { IPullRequestsAdapter } from '../interfaces/IPullRequestsAdapter.js';
 import type { PullRequest } from '../types/PullRequest.js';
+import { Logger } from '../utils/Logger.js';
 
 export class PullRequestsAdapter implements IPullRequestsAdapter {
   octokit: Octokit;
@@ -17,6 +18,7 @@ export class PullRequestsAdapter implements IPullRequestsAdapter {
   }
 
   async GetAllPRs(since?: Date): Promise<PullRequest[] | null> {
+    Logger.info(`Fetching all pull requests for repository "${this.repo}"...`); 
     try {
       let result: PullRequest[] = [];
       let page = 1;
@@ -26,7 +28,7 @@ export class PullRequestsAdapter implements IPullRequestsAdapter {
         nextPage = await this.getPRs(page, since);
         result = result.concat(nextPage);
         page++;
-      } while (nextPage.length === 50);
+      } while (nextPage.length === parseInt(process.env.ISSUES_PER_PAGE || '50'));
 
       return result;
     } catch (e: any) {
@@ -42,7 +44,7 @@ export class PullRequestsAdapter implements IPullRequestsAdapter {
       headers: {
         'X-GitHub-Api-Version': '2022-11-28',
       },
-      per_page: 50,
+      per_page: parseInt(process.env.ISSUES_PER_PAGE || '50'),
       page,
       state: 'closed',
     };
