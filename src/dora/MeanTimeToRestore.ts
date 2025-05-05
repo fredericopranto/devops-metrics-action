@@ -1,5 +1,6 @@
 import {Issue} from '../types/Issue.js'
 import {Release} from '../types/Release.js'
+import { BugFilter } from '../utils/BugFilter.js';
 
 export interface BugTime {
   start: number
@@ -28,10 +29,8 @@ export class MeanTimeToRestore {
       .sort((a, b) => a.published - b.published)
   }
 
-  getBugCount(): BugTime[] {
-    const bugs: Issue[] = this.getIssuesTaggedAsBug()
+  getClosedBugCount(bugs: Issue[]): BugTime[] {
     const values: BugTime[] = this.getStartAndEndTimesForBugs(bugs)
-
     return values
   }
 
@@ -55,16 +54,6 @@ export class MeanTimeToRestore {
       });
     }
     return values;
-  }
-
-  private getIssuesTaggedAsBug(): Issue[] {
-    const bugs: Issue[] = [];
-    for (const issue of this.issues) {
-      if (issue.labels.filter(label => label.name === 'bug').length > 0) {
-        bugs.push(issue);
-      }
-    }
-    return bugs;
   }
 
   hasPreviousRelease(date: number): boolean {
@@ -115,13 +104,19 @@ export class MeanTimeToRestore {
       return null;
     }
 
-    // if (this.issues === null || this.issues.length === 0) {
-    //   return null;
-    // }
+    if (this.issues === null || this.issues.length === 0) {
+      console.info('No issues found');
+      return null;
+    }
 
-    const ttr: number[] = this.getBugCount().map(bug => {
+    const bugs = BugFilter.getBugs(this.issues);
+    console.info(`Total Bugs Issues: ${bugs.length}`);
+
+    const ttr: number[] = this.getClosedBugCount(bugs).map(bug => {
       return this.getRestoreTime(bug);
     });
+
+    console.info(`TTR: ${ttr.length}`);
 
     if (ttr.length === 0) {
       return 0;
@@ -131,6 +126,8 @@ export class MeanTimeToRestore {
     for (const ttrElement of ttr) {
       sum += ttrElement;
     }
+
+    console.info(`Sum: ${sum}`);
 
     return Math.round((sum / ttr.length / ONE_DAY) * 100) / 100;
   }

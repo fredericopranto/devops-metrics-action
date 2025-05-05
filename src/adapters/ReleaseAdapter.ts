@@ -16,7 +16,6 @@ export class ReleaseAdapter implements IReleaseAdapter {
   }
 
   async GetAllReleases(since?: Date | null, until?: Date | null): Promise<Release[]> {
-    Logger.info(`Fetching all releases for repository "${this.repo}"...`);
     try {
       let result: Release[] = [];
       let page = 1;

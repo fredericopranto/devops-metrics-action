@@ -59,14 +59,9 @@ async function run(): Promise<void> {
         console.error(`Error processing repository "${repository}":`, error.message);
         nullResults.push({ repository, category, metric: error.message });
       }
-
-      console.log(results);
-      MetricsExporter.exportToConsole(results, nullResults);
     }
     
     MetricsExporter.exportToCSV(results, nullResults, process.cwd());
-    
-    console.log('Metrics generation completed successfully.');
   } catch (error: any) {
     console.error('Error running the project:', error.message);
   }

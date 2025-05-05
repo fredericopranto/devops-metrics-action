@@ -56,11 +56,6 @@ export class DeployFrequency {
 
     const totalPeriods = this.getTotalDays();
 
-    // console.log(`Total releases: ${totalReleases}`);
-    // console.log(`Total periods (days): ${totalPeriods}`);
-    // console.log('Start Date:', this.startDate);
-    // console.log('End Date:', this.endDate);
-
     const average = totalPeriods / totalReleases;
     return parseFloat(average.toFixed(2));
   }

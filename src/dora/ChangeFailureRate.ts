@@ -5,25 +5,18 @@ import type { Issue } from '../types/Issue.js';
 import type { Release } from '../types/Release.js';
 
 export class ChangeFailureRate {
-  issues: Issue[];
+  bugs: Issue[];
   releases: Release[];
 
-  constructor(issues: Issue[], releases: Release[]) {
-    this.issues = issues;
+  constructor(bugs: Issue[], releases: Release[]) {
+    this.bugs = bugs;
     this.releases = releases.sort((a, b) =>
       +new Date(a.published_at || a.created_at) < +new Date(b.published_at || b.created_at) ? -1 : 1
     );
   }
 
-  getBugs(): Issue[] {
-    const bugLabels = (process.env.BUG_LABEL || 'bug').split(',').map(label => label.trim()); 
-    return this.issues.filter(issue =>
-      issue.labels.some(label => bugLabels.includes(label.name))
-    );
-  }
-
   Cfr(): number | null {
-    if (this.issues.length === 0) {
+    if (this.bugs.length === 0) {
       return 0;
     }
 
@@ -36,8 +29,6 @@ export class ChangeFailureRate {
       return null;
     }
 
-    const bugs = this.getBugs();
-
     const releaseDates = validReleases.map(release => ({
       published: +new Date(release.published_at || release.created_at)
     }));
@@ -45,7 +36,7 @@ export class ChangeFailureRate {
     let failedDeploys = 0;
 
     for (let i = 0; i < releaseDates.length - 1; i++) {
-      const bugsInRange = bugs.filter(bug => {
+      const bugsInRange = this.bugs.filter(bug => {
         const bugDate = +new Date(bug.created_at);
         return (
           bugDate > releaseDates[i].published &&
@@ -58,7 +49,7 @@ export class ChangeFailureRate {
       }
     }
 
-    const bugsAfterLastRelease = bugs.filter(bug => {
+    const bugsAfterLastRelease = this.bugs.filter(bug => {
       const bugDate = +new Date(bug.created_at);
       return bugDate > releaseDates[releaseDates.length - 1].published;
     });

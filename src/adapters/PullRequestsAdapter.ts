@@ -17,18 +17,18 @@ export class PullRequestsAdapter implements IPullRequestsAdapter {
     this.today = new Date();
   }
 
-  async GetAllPRs(since?: Date): Promise<PullRequest[] | null> {
-    Logger.info(`Fetching all pull requests for repository "${this.repo}"...`); 
+  async GetAllPRs(since?: Date | null): Promise<PullRequest[] | null> {
     try {
       let result: PullRequest[] = [];
       let page = 1;
       let nextPage: PullRequest[] = [];
+      const issuesPerPage = parseInt(process.env.ISSUES_PER_PAGE || '50');
 
       do {
         nextPage = await this.getPRs(page, since);
         result = result.concat(nextPage);
         page++;
-      } while (nextPage.length === parseInt(process.env.ISSUES_PER_PAGE || '50'));
+      } while (nextPage.length === issuesPerPage);
 
       return result;
     } catch (e: any) {
@@ -37,7 +37,7 @@ export class PullRequestsAdapter implements IPullRequestsAdapter {
     }
   }
 
-  async getPRs(page: number, since? : Date): Promise<PullRequest[]> {
+  async getPRs(page: number, since?: Date | null): Promise<PullRequest[]> {
     const params: any = {
       owner: this.owner,
       repo: this.repo,
@@ -49,15 +49,17 @@ export class PullRequestsAdapter implements IPullRequestsAdapter {
       state: 'closed',
     };
 
-    if (since) {
-      params.since = since.toISOString();
-    }
-
     const result = await this.octokit.request(
       'GET /repos/{owner}/{repo}/pulls',
       params
     );
 
-    return result.data as PullRequest[];
+    let pullRequests = result.data as PullRequest[];
+
+    if (since) {
+      pullRequests = pullRequests.filter(pr => pr.merged_at && new Date(pr.merged_at) >= since);
+    }
+
+    return pullRequests;
   }
 }

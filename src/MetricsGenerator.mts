@@ -10,6 +10,7 @@ import { MeanTimeToRestore } from './dora/MeanTimeToRestore.js';
 import { DORAMetricsEvaluator } from './DORALevelEvaluator.js';
 import { Commit } from './types/Commit.js';
 import { Logger } from './utils/Logger.js';
+import { BugFilter } from './utils/BugFilter.js';
 
 export class MetricsGenerator {
   private octokit: Octokit;
@@ -46,11 +47,20 @@ export class MetricsGenerator {
     const adapterCommits = new CommitsAdapter(this.octokit);
 
     const releases = (await adapterRelease.GetAllReleases(startDate, endDate)) || [];
-    Logger.info(`Total releases: ${releases.length}`);
-    const issues = (await adapterIssue.GetAllIssues()) || [];
-    Logger.info(`Total issues: ${issues.length}`);
-    let pulls = (await adapterPR.GetAllPRs()) || [];
-    Logger.info(`Total pulls: ${pulls.length}`);
+    Logger.info(`[SETUP] Total releases: ${releases.length}`);
+    releases.forEach((release, index) => {
+      Logger.info(`Release ${index + 1}: Published at: ${release.published_at || 'Unknown'}`);
+    });
+    if (releases.length < 2) {
+      Logger.warn('Not enough releases to calculate metrics. At least 2 releases are required.');
+      return;
+    }
+    const issues = (await adapterIssue.GetAllIssues(startDate)) || [];
+    Logger.info(`[SETUP] Total issues: ${issues.length}`);
+    const bugs = BugFilter.getBugs(issues);
+    Logger.info(`[SETUP] Total bugs issues: ${bugs.length}`);
+    let pulls = (await adapterPR.GetAllPRs(startDate)) || [];
+    Logger.info(`[SETUP] Total pulls: ${pulls.length}`);
 
     let defaultBranch: string | null = process.env.DEFAULT_BRANCH || null;
 
@@ -61,14 +71,14 @@ export class MetricsGenerator {
     pulls = await Promise.all(
       pulls.map(async (pull, index) => {
         const pullCommits = await adapterCommits.getCommitsFromUrl(pull.commits_url);
-        Logger.info(`Total pull commits (${index + 1}/${pulls.length}): ${pullCommits.length}`);
+        //Logger.info(`Total pull commits (${index + 1}/${pulls.length}): ${pullCommits.length}`);
 
         pull.default_branch = defaultBranch;
         pull.commits = pullCommits as Commit[];
         return pull;
       })
     );
-    Logger.info(`Total commits: ${pulls.reduce((sum, pull) => sum + (pull.commits?.length || 0), 0)}`);
+    Logger.info(`[SETUP] Total commits: ${pulls.reduce((sum, pull) => sum + (pull.commits?.length || 0), 0)}`);
 
     // Deployment Frequency
     const df = new DeployFrequency(releases, startDate, endDate);
@@ -95,7 +105,7 @@ export class MetricsGenerator {
     const mttrValueMonth = mttrValueDay !== null ? (mttrValueDay / 30).toFixed(2) : 'null'; // Dividir por 30 para meses
     const mttrLevel = mttrValueDay !== null ? DORAMetricsEvaluator.evaluateMTTR(mttrValueDay) : 'null';
 
-    exportToConsole();
+    printToConsole();
 
     return {
       repository,
@@ -110,15 +120,15 @@ export class MetricsGenerator {
       mttrLevel,
     };
 
-    function exportToConsole() {
-      console.log('Deployment Frequency (DF) (Day):', dfValueDay, '| Level:', dfLevel);
-      console.log('Deployment Frequency (DF) (Week):', dfValueWeek);
-      console.log('Deployment Frequency (DF) (Month):', dfValueMonth);
-      console.log('Lead Time (LT):', ltValue?.toFixed(2) || 'null', 'days | Level:', ltLevel);
-      console.log('Change Failure Rate (CFR):', cfrValue || 'null', '% | Level:', cfrLevel);
-      console.log('Mean Time to Restore (MTTR) (Day):', mttrValueDay || 'null', '| Level:', mttrLevel);
-      console.log('Mean Time to Restore (MTTR) (Week):', mttrValueWeek);
-      console.log('Mean Time to Restore (MTTR) (Month):', mttrValueMonth);
+    function printToConsole() {
+      console.log('>>> Deployment Frequency (DF) (Day):     ', dfValueDay, '      | Level:', dfLevel);
+      //console.log('>>> Deployment Frequency (DF) (Week):', dfValueWeek);
+      //console.log('>>> Deployment Frequency (DF) (Month):', dfValueMonth);
+      console.log('>>> Lead Time (LT):                      ', ltValue?.toFixed(2) || 'null', 'days  | Level:', ltLevel);
+      console.log('>>> Change Failure Rate (CFR):           ', cfrValue || 'null', '%     | Level:', cfrLevel);
+      console.log('>>> Mean Time to Restore (MTTR) (Day):   ', mttrValueDay || 'null', '      | Level:', mttrLevel);
+      //console.log('Mean Time to Restore (MTTR) (Week):', mttrValueWeek);
+      //console.log('Mean Time to Restore (MTTR) (Month):', mttrValueMonth);
     }
   }
 }

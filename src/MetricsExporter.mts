@@ -13,20 +13,15 @@ export class MetricsExporter {
 
     const outputPath = path.join(outputDir, 'metrics.csv');
     fs.writeFileSync(outputPath, csvContent);
-    console.log('CSV generated at:', outputPath);
 
     const nullCsvContent =
       'Repository,Category,Metric\n' +
       nullResults.map(r => `${r.repository},${r.category},${r.metric}`).join('\n');
     const nullOutputPath = path.join(outputDir, 'null_metrics.csv');
     fs.writeFileSync(nullOutputPath, nullCsvContent);
-    console.log('Null metrics CSV generated at:', nullOutputPath);
   }
 
   static exportToConsole(results: any[], nullResults: any[]) {
-    console.log('\n=== Metrics Report ===');
-    console.log('Repository, Category, Deployment Frequency (DF), DF Level, Lead Time (days), LT Level, Change Failure Rate (CFR), CFR Level, Mean Time to Restore (MTTR), MTTR Level');
-    
     if (results.length === 0) {
       console.log('No metrics available.');
     } else {
