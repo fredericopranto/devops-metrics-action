@@ -1,6 +1,5 @@
 import {Issue} from '../types/Issue.js'
 import {Release} from '../types/Release.js'
-import { BugFilter } from '../utils/BugFilter.js';
 
 export interface BugTime {
   start: number
@@ -15,12 +14,12 @@ export interface ReleaseDate {
 const ONE_DAY = 1000 * 60 * 60 * 24
 
 export class MeanTimeToRestore {
-  issues: Issue[];
+  bugs: Issue[];
   releases: Release[];
   releaseDates: ReleaseDate[];
 
-  constructor(issues: Issue[], releases: Release[]) {
-    this.issues = issues
+  constructor(bugs: Issue[], releases: Release[]) {
+    this.bugs = bugs
     this.releases = releases
     
     this.releaseDates = this.releases
@@ -104,15 +103,12 @@ export class MeanTimeToRestore {
       return null;
     }
 
-    if (this.issues === null || this.issues.length === 0) {
+    if (this.bugs === null || this.bugs.length === 0) {
       console.info('No issues found');
       return null;
     }
 
-    const bugs = BugFilter.getBugs(this.issues);
-    console.info(`Total Bugs Issues: ${bugs.length}`);
-
-    const ttr: number[] = this.getClosedBugCount(bugs).map(bug => {
+    const ttr: number[] = this.getClosedBugCount(this.bugs).map(bug => {
       return this.getRestoreTime(bug);
     });
 

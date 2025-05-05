@@ -49,7 +49,7 @@ export class MetricsGenerator {
     const releases = (await adapterRelease.GetAllReleases(startDate, endDate)) || [];
     Logger.info(`[SETUP] Total releases: ${releases.length}`);
     releases.forEach((release, index) => {
-      Logger.info(`Release ${index + 1}: Published at: ${release.published_at || 'Unknown'}`);
+      //Logger.info(`Release ${index + 1}: Published at: ${release.published_at || 'Unknown'}`);
     });
     if (releases.length < 2) {
       Logger.warn('Not enough releases to calculate metrics. At least 2 releases are required.');
@@ -94,15 +94,15 @@ export class MetricsGenerator {
     const ltLevel = ltValue !== null ? DORAMetricsEvaluator.evaluateLeadTime(ltValue) : 'null';
 
     // Change Failure Rate
-    const cfr = new ChangeFailureRate(issues, releases);
+    const cfr = new ChangeFailureRate(bugs, releases);
     const cfrValue = cfr.Cfr();
     const cfrLevel = cfrValue !== null ? DORAMetricsEvaluator.evaluateChangeFailureRate(cfrValue) : 'null';
 
     // Mean Time to Restore
-    const mttr = new MeanTimeToRestore(issues, releases);
+    const mttr = new MeanTimeToRestore(bugs, releases);
     const mttrValueDay = mttr.mttr();
-    const mttrValueWeek = mttrValueDay !== null ? (mttrValueDay / 7).toFixed(2) : 'null'; // Dividir por 7 para semanas
-    const mttrValueMonth = mttrValueDay !== null ? (mttrValueDay / 30).toFixed(2) : 'null'; // Dividir por 30 para meses
+    const mttrValueWeek = mttrValueDay !== null ? (mttrValueDay / 7).toFixed(2) : 'null';
+    const mttrValueMonth = mttrValueDay !== null ? (mttrValueDay / 30).toFixed(2) : 'null'; 
     const mttrLevel = mttrValueDay !== null ? DORAMetricsEvaluator.evaluateMTTR(mttrValueDay) : 'null';
 
     printToConsole();

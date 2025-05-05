@@ -29,7 +29,7 @@ export class IssuesAdapter implements IIssuesAdapter {
         nextPage = await this.getIssues(page, since);
         result = result.concat(nextPage);
         page++;
-      } while (nextPage.length === parseInt(process.env.ISSUES_PER_PAGE || '50'));
+      } while (nextPage.length > 0);
 
       return result;
     } catch (e: any) {

@@ -1,2 +1,2 @@
 Repository,Category,Deployment Frequency (DF),DF Level,Lead Time (days),LT Level,Change Failure Rate (CFR),CFR Level,Mean Time to Restore (MTTR),MTTR Level
-facebook/docusaurus,Non-ML,0.01,Baixa,null,null,100,Baixa,null,Elite
+facebook/docusaurus,Non-ML,0.01,Baixa,null,null,100,Baixa,42.08,Média
