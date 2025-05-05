@@ -1,8 +1,9 @@
-import dotenv from 'dotenv';
-dotenv.config();
-
 import type { Issue } from '../types/Issue.js';
 import type { Release } from '../types/Release.js';
+import { Logger } from '../utils/Logger.js';
+import dotenv from 'dotenv';
+
+dotenv.config();
 
 export class ChangeFailureRate {
   bugs: Issue[];
@@ -43,6 +44,8 @@ export class ChangeFailureRate {
           bugDate < releaseDates[i + 1].published
         );
       });
+
+      Logger.info(`Release ${this.releases[i].name} has ${bugsInRange.length} bugs associated.`);
 
       if (bugsInRange.length > 0) {
         failedDeploys += 1;
