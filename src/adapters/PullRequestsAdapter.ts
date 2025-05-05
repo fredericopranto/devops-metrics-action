@@ -22,13 +22,12 @@ export class PullRequestsAdapter implements IPullRequestsAdapter {
       let result: PullRequest[] = [];
       let page = 1;
       let nextPage: PullRequest[] = [];
-      const issuesPerPage = parseInt(process.env.ISSUES_PER_PAGE || '50');
 
       do {
         nextPage = await this.getPRs(page, since);
         result = result.concat(nextPage);
         page++;
-      } while (nextPage.length === issuesPerPage);
+      } while (nextPage.length > 0);
 
       return result;
     } catch (e: any) {
@@ -58,6 +57,8 @@ export class PullRequestsAdapter implements IPullRequestsAdapter {
 
     if (since) {
       pullRequests = pullRequests.filter(pr => pr.merged_at && new Date(pr.merged_at) >= since);
+    } else {
+      pullRequests = pullRequests.filter(pr => pr.merged_at);
     }
 
     return pullRequests;

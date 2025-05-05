@@ -71,7 +71,7 @@ export class MetricsGenerator {
     pulls = await Promise.all(
       pulls.map(async (pull, index) => {
         const pullCommits = await adapterCommits.getCommitsFromUrl(pull.commits_url);
-        //Logger.info(`Total pull commits (${index + 1}/${pulls.length}): ${pullCommits.length}`);
+        Logger.info(`Total pull commits (${index + 1}/${pulls.length}): ${pullCommits.length}`);
 
         pull.default_branch = defaultBranch;
         pull.commits = pullCommits as Commit[];

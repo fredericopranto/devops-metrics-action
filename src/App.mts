@@ -9,14 +9,8 @@ dotenv.config();
 
 async function run(): Promise<void> {
   try {
-    const token = process.env.GITHUB_TOKEN || '';
     const startDate = process.env.START_DATE ? new Date(process.env.START_DATE) : null;
     const endDate = process.env.END_DATE ? new Date(process.env.END_DATE) : null;
-
-    if (!token) {
-      throw new Error('Please configure the GITHUB_TOKEN variable in the .env file');
-    }
-
     const projectsFilePath = path.join(process.cwd(), 'projects.csv');
     if (!fs.existsSync(projectsFilePath)) {
       throw new Error(`File projects.csv not found at ${projectsFilePath}`);
@@ -41,10 +35,10 @@ async function run(): Promise<void> {
     
 
     const octokit = new Octokit({
-      auth: token,
-      request: {
-        timeout: 10000
-      },
+      auth: process.env.GITHUB_TOKEN,
+      // request: {
+      //   timeout: 30000,
+      // },
     });
     const generator = new MetricsGenerator(octokit);
     
@@ -60,8 +54,7 @@ async function run(): Promise<void> {
         nullResults.push({ repository, category, metric: error.message });
       }
     }
-    
-    MetricsExporter.exportToCSV(results, nullResults, process.cwd());
+    //MetricsExporter.exportToCSV(results, nullResults, process.cwd());
   } catch (error: any) {
     console.error('Error running the project:', error.message);
   }

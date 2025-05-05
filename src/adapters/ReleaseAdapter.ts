@@ -42,7 +42,6 @@ export class ReleaseAdapter implements IReleaseAdapter {
         if (nextPage.length < params.per_page) {
           break;
         }
-
         page++;
       }
 
@@ -51,19 +50,9 @@ export class ReleaseAdapter implements IReleaseAdapter {
         if (release.prerelease) return false;
         if (since && publishedAt < since) return false;
         if (until && publishedAt > until) return false;
+        Logger.info(`Processing Release: ${release.tag_name}, Published At: ${release.published_at || release.created_at}`);
         return true;
       });
-
-      if (filteredReleases.length > 0) {
-        const sortedReleases = filteredReleases.sort((a, b) =>
-          new Date(a.published_at || a.created_at).getTime() - new Date(b.published_at || a.created_at).getTime()
-        );
-        const firstRelease = sortedReleases[0];
-        const lastRelease = sortedReleases[sortedReleases.length - 1];
-        
-        //console.log(`First evaluated release: ${firstRelease.published_at || firstRelease.created_at}`);
-        //console.log(`Last evaluated release: ${lastRelease.published_at || lastRelease.created_at}`);
-      }
 
       return filteredReleases;
     } catch (e: any) {

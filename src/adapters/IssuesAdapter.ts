@@ -3,7 +3,6 @@ import * as core from '@actions/core';
 import { IIssuesAdapter } from '../interfaces/IIssuesAdapter.js';
 import { Issue } from '../types/Issue.js';
 import https from 'https';
-import { Logger } from '../utils/Logger.js';
 import dotenv from 'dotenv';
 
 dotenv.config();

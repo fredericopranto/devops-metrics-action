@@ -24,9 +24,11 @@ export class LeadTime {
       if (
         typeof pull.merged_at === 'string' && pull.merged_at &&
         typeof pull.base.repo.name === 'string' && pull.base.repo.name &&
-        pull.base.ref === pull.default_branch || 'main')
-      {
+        pull.base.ref === pull.default_branch || 'main'
+      ) {
         const mergeTime = +new Date(pull.merged_at);
+
+        Logger.info(`Processing Pull Request #${pull.number}, Merged At: ${pull.merged_at}`);
 
         const sortedReleases = this.releases.sort(
           (a, b) => +new Date(a.published_at || a.created_at) - +new Date(b.published_at || b.created_at)
@@ -37,7 +39,6 @@ export class LeadTime {
         );
 
         if (laterReleases.length === 0) {
-          Logger.info(`No later releases found for pull request ${pull.number}`);
           continue;
         }
 
@@ -53,7 +54,7 @@ export class LeadTime {
     }
 
     if (leadTimes.length === 0) {
-      Logger.info('No valid lead times found');
+      Logger.warn('No valid lead times found');
       return null;
     }
 
