@@ -1,3 +1,4 @@
+import dotenv from 'dotenv';
 import { Octokit } from '@octokit/rest';
 import { ReleaseAdapter } from './adapters/ReleaseAdapter.js';
 import { IssuesAdapter } from './adapters/IssuesAdapter.js';
@@ -11,6 +12,9 @@ import { DORAMetricsEvaluator } from './DORALevelEvaluator.js';
 import { Commit } from './types/Commit.js';
 import { Logger } from './utils/Logger.js';
 import { BugFilter } from './utils/BugFilter.js';
+import pLimit from 'p-limit';
+
+dotenv.config();
 
 export class MetricsGenerator {
   private octokit: Octokit;
@@ -48,9 +52,6 @@ export class MetricsGenerator {
 
     const releases = (await adapterRelease.GetAllReleases(startDate, endDate)) || [];
     Logger.info(`[SETUP] Total releases: ${releases.length}`);
-    releases.forEach((release, index) => {
-      //Logger.info(`Release ${index + 1}: Published at: ${release.published_at || 'Unknown'}`);
-    });
     if (releases.length < 2) {
       Logger.warn('Not enough releases to calculate metrics. At least 2 releases are required.');
       return;
@@ -68,14 +69,22 @@ export class MetricsGenerator {
       defaultBranch = await adapterCommits.getDefaultBranch(pulls[0].base.repo.owner.login, pulls[0].base.repo.name);
     }
 
-    for (let index = 0; index < pulls.length; index++) {
-      const pull = pulls[index];
-      const pullCommits = await adapterCommits.getCommitsFromUrl(pull.commits_url);
-      Logger.debug(`Total pull commits (${index + 1}/${pulls.length}): ${pullCommits.length}`);
+    const limit = pLimit(process.env.PROMISES_CONCURRENCY ? parseInt(process.env.PROMISES_CONCURRENCY) : 5);
 
+    const commitPromises = pulls.map(pull =>
+      limit(async () => {
+        const pullCommits = await adapterCommits.getCommitsFromUrl(pull.commits_url);
+        Logger.debug(`Total pull commits for PR #${pull.number}: ${pullCommits.length}`);
+        return { pull, pullCommits };
+      })
+    );
+
+    const results = await Promise.all(commitPromises);
+
+    results.forEach(({ pull, pullCommits }) => {
       pull.default_branch = defaultBranch;
       pull.commits = pullCommits as Commit[];
-    }
+    });
 
     Logger.info(`[SETUP] Total commits: ${pulls.reduce((sum, pull) => sum + (pull.commits?.length || 0), 0)}`);
 
