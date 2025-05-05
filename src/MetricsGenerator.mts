@@ -90,7 +90,7 @@ export class MetricsGenerator {
 
     // Lead Time
     const lt = new LeadTime(pulls, releases);
-    const ltValue = await lt.getLeadTime();
+    const ltValue = lt.getLeadTime();
     const ltLevel = ltValue !== null ? DORAMetricsEvaluator.evaluateLeadTime(ltValue) : 'null';
 
     // Change Failure Rate

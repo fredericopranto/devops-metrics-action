@@ -112,8 +112,6 @@ export class MeanTimeToRestore {
       return this.getRestoreTime(bug);
     });
 
-    console.info(`TTR: ${ttr.length}`);
-
     if (ttr.length === 0) {
       return 0;
     }
@@ -122,8 +120,6 @@ export class MeanTimeToRestore {
     for (const ttrElement of ttr) {
       sum += ttrElement;
     }
-
-    console.info(`Sum: ${sum}`);
 
     return Math.round((sum / ttr.length / ONE_DAY) * 100) / 100;
   }

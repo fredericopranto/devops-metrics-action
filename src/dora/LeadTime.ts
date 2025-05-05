@@ -1,3 +1,4 @@
+import { Logger } from '../utils/Logger.js';
 import { PullRequest } from '../types/PullRequest.js';
 import { Release } from '../types/Release.js';
 
@@ -20,7 +21,6 @@ export class LeadTime {
     const leadTimes: number[] = [];
 
     for (const pull of this.pulls) {
-
       if (
         typeof pull.merged_at === 'string' && pull.merged_at &&
         typeof pull.base.repo.name === 'string' && pull.base.repo.name &&
@@ -37,6 +37,7 @@ export class LeadTime {
         );
 
         if (laterReleases.length === 0) {
+          Logger.info(`No later releases found for pull request ${pull.number}`);
           continue;
         }
 
@@ -52,6 +53,7 @@ export class LeadTime {
     }
 
     if (leadTimes.length === 0) {
+      Logger.info('No valid lead times found');
       return null;
     }
 
