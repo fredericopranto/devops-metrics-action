@@ -28,7 +28,7 @@ export class LeadTime {
       ) {
         const mergeTime = +new Date(pull.merged_at);
 
-        Logger.info(`Processing Pull Request #${pull.number}, Merged At: ${pull.merged_at}`);
+        Logger.debug(`Processing Pull Request #${pull.number}, Merged At: ${pull.merged_at}`);
 
         const sortedReleases = this.releases.sort(
           (a, b) => +new Date(a.published_at || a.created_at) - +new Date(b.published_at || b.created_at)

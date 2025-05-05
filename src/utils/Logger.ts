@@ -8,9 +8,7 @@ export class Logger {
   }
 
   static info(message: string): void {
-    if (this.isLoggingEnabled()) {
-      console.log(`[INFO]: ${message}`);
-    }
+    console.log(`[INFO]: ${message}`);
   }
 
   static error(message: string): void {
@@ -18,9 +16,7 @@ export class Logger {
   }
 
   static warn(message: string): void {
-    if (this.isLoggingEnabled()) {
-      console.warn(`[WARN]: ${message}`);
-    }
+    console.warn(`[WARN]: ${message}`);
   }
 
   static debug(message: string): void {

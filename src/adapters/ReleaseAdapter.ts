@@ -50,7 +50,7 @@ export class ReleaseAdapter implements IReleaseAdapter {
         if (release.prerelease) return false;
         if (since && publishedAt < since) return false;
         if (until && publishedAt > until) return false;
-        Logger.info(`Processing Release: ${release.tag_name}, Published At: ${release.published_at || release.created_at}`);
+        Logger.debug(`Processing Release: ${release.tag_name}, Published At: ${release.published_at || release.created_at}`);
         return true;
       });
 

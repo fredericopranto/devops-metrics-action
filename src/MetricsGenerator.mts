@@ -25,7 +25,7 @@ export class MetricsGenerator {
       const remaining = rateLimit.data.rate.remaining;
       const resetTime = new Date(rateLimit.data.rate.reset * 1000).toISOString();
   
-      Logger.info(`GitHub API Rate Limit: ${remaining} requests remaining. Reset at: ${resetTime}`);
+      Logger.debug(`GitHub API Rate Limit: ${remaining} requests remaining. Reset at: ${resetTime}`);
   
       if (remaining <= 0) {
         throw new Error(`Rate limit exceeded. Please wait until ${resetTime} to continue.`);
@@ -68,16 +68,15 @@ export class MetricsGenerator {
       defaultBranch = await adapterCommits.getDefaultBranch(pulls[0].base.repo.owner.login, pulls[0].base.repo.name);
     }
 
-    pulls = await Promise.all(
-      pulls.map(async (pull, index) => {
-        const pullCommits = await adapterCommits.getCommitsFromUrl(pull.commits_url);
-        Logger.info(`Total pull commits (${index + 1}/${pulls.length}): ${pullCommits.length}`);
+    for (let index = 0; index < pulls.length; index++) {
+      const pull = pulls[index];
+      const pullCommits = await adapterCommits.getCommitsFromUrl(pull.commits_url);
+      Logger.debug(`Total pull commits (${index + 1}/${pulls.length}): ${pullCommits.length}`);
 
-        pull.default_branch = defaultBranch;
-        pull.commits = pullCommits as Commit[];
-        return pull;
-      })
-    );
+      pull.default_branch = defaultBranch;
+      pull.commits = pullCommits as Commit[];
+    }
+
     Logger.info(`[SETUP] Total commits: ${pulls.reduce((sum, pull) => sum + (pull.commits?.length || 0), 0)}`);
 
     // Deployment Frequency
