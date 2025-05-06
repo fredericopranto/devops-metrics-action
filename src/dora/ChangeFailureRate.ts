@@ -45,7 +45,7 @@ export class ChangeFailureRate {
         );
       });
 
-      Logger.info(`Release ${this.releases[i].name} has ${bugsInRange.length} bugs associated.`);
+      Logger.debug(`Release ${this.releases[i].name} has ${bugsInRange.length} bugs associated.`);
 
       if (bugsInRange.length > 0) {
         failedDeploys += 1;
