@@ -56,7 +56,7 @@ export class MetricsGenerator {
       Logger.warn('Not enough releases to calculate metrics. At least 2 releases are required.');
       return;
     }
-    const issues = (await adapterIssue.GetAllIssues(startDate)) || [];
+    const issues = (await adapterIssue.GetAllIssuesGraphQL(startDate)) || [];
     Logger.info(`[SETUP] Total issues: ${issues.length}`);
     const bugs = BugFilter.getBugs(issues);
     Logger.info(`[SETUP] Total bugs issues: ${bugs.length}`);

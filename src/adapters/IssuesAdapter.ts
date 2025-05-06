@@ -38,6 +38,106 @@ export class IssuesAdapter implements IIssuesAdapter {
     }
   }
 
+  async GetAllIssuesGraphQL(since?: Date | null): Promise<Issue[] | null> {
+    try {
+      let result: Issue[] = [];
+      let hasNextPage = true;
+      let endCursor: string | null = null;
+
+      while (hasNextPage) {
+        const response = await this.getIssuesGraphQL(endCursor, since);
+        if (response.issues) {
+          result = result.concat(response.issues);
+        }
+        hasNextPage = response.pageInfo.hasNextPage;
+        endCursor = response.pageInfo.endCursor;
+      }
+
+      return result;
+    } catch (e: any) {
+      console.error(`Error fetching issues via GraphQL for repository "${this.repo}": ${e.message}`);
+      core.setFailed(e.message);
+      return [];
+    }
+  }
+
+  private async getIssuesGraphQL(cursor: string | null, since?: Date | null): Promise<{
+    issues: Issue[];
+    pageInfo: { hasNextPage: boolean; endCursor: string | null };
+  }> {
+    const sinceFilter = since ? `, filterBy: {since: "${since.toISOString()}"}` : '';
+    const cursorFilter = cursor ? `, after: "${cursor}"` : '';
+    const perPage = parseInt(process.env.ISSUES_PER_PAGE || '50');
+
+    const query = `
+      query($owner: String!, $repo: String!) {
+        repository(owner: $owner, name: $repo) {
+          issues(first: ${perPage}${cursorFilter}${sinceFilter}, orderBy: {field: UPDATED_AT, direction: DESC}) {
+            nodes {
+              id
+              number
+              title
+              state
+              createdAt
+              updatedAt
+              closedAt
+              author {
+                login
+              }
+              labels(first: 10) {
+                nodes {
+                  name
+                }
+              }
+            }
+            pageInfo {
+              hasNextPage
+              endCursor
+            }
+          }
+        }
+      }
+    `;
+
+    const agent = new https.Agent({
+      rejectUnauthorized: false,
+    });
+
+    try {
+      const result = await this.octokit.graphql(query, {
+        owner: this.owner,
+        repo: this.repo,
+        request: {
+          agent,
+        },
+      });
+
+      const issues = (result as any).repository.issues.nodes.map((node: any) => ({
+        id: node.id,
+        number: node.number,
+        title: node.title,
+        state: node.state,
+        created_at: node.createdAt,
+        updated_at: node.updatedAt,
+        closed_at: node.closedAt,
+        user: node.author ? { login: node.author.login } : null,
+        labels: node.labels.nodes.map((label: any) => ({ name: label.name })),
+      }));
+
+      return {
+        issues,
+        pageInfo: (result as any).repository.issues.pageInfo,
+      };
+    } catch (error: any) {
+      if (error.status === 401) {
+        console.error(`Authentication failed: ${error.message}`);
+        throw new Error('Access denied: Invalid or insufficient permissions for the provided token.');
+      }
+      console.error(`Error fetching issues from GitHub GraphQL API: ${error.message}`);
+      throw error;
+    }
+  }
+
   private async getIssues(page: number, since?: Date | null): Promise<Issue[]> {
     const params: any = {
       owner: this.owner,
