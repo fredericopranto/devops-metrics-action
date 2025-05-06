@@ -25,6 +25,7 @@ export class PullRequestsAdapter implements IPullRequestsAdapter {
 
       do {
         nextPage = await this.getPRs(page, since);
+        Logger.debug(`Retrieved ${nextPage.length} PRs on page ${page}`);
         result = result.concat(nextPage);
         page++;
       } while (nextPage.length > 0);

@@ -4,6 +4,7 @@ import { IIssuesAdapter } from '../interfaces/IIssuesAdapter.js';
 import { Issue } from '../types/Issue.js';
 import https from 'https';
 import dotenv from 'dotenv';
+import { Logger } from '../utils/Logger.js';
 
 dotenv.config();
 
@@ -43,10 +44,13 @@ export class IssuesAdapter implements IIssuesAdapter {
       let result: Issue[] = [];
       let hasNextPage = true;
       let endCursor: string | null = null;
+      let pageCount = 0;
 
       while (hasNextPage) {
+        pageCount++;
         const response = await this.getIssuesGraphQL(endCursor, since);
         if (response.issues) {
+          Logger.debug(`Retrieved ${response.issues.length} issues on page ${pageCount}`);
           result = result.concat(response.issues);
         }
         hasNextPage = response.pageInfo.hasNextPage;
@@ -56,7 +60,6 @@ export class IssuesAdapter implements IIssuesAdapter {
       return result;
     } catch (e: any) {
       console.error(`Error fetching issues via GraphQL for repository "${this.repo}": ${e.message}`);
-      core.setFailed(e.message);
       return [];
     }
   }
@@ -68,6 +71,7 @@ export class IssuesAdapter implements IIssuesAdapter {
     const sinceFilter = since ? `, filterBy: {since: "${since.toISOString()}"}` : '';
     const cursorFilter = cursor ? `, after: "${cursor}"` : '';
     const perPage = parseInt(process.env.ISSUES_PER_PAGE || '50');
+
 
     const query = `
       query($owner: String!, $repo: String!) {
