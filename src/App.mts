@@ -43,20 +43,38 @@ async function run(): Promise<void> {
     const generator = new MetricsGenerator(octokit);
     
     const results = [];
-    const nullResults = [];
 
     for (const { repository, category } of repositories) {
       try {
+        const exists = await MetricsExporter.metricExists(repository, category);
+        if (exists) {
+          continue;
+        }
+
         const metrics = await generator.generateMetrics(repository, category, startDate, endDate);
-        results.push(metrics);
+        if (metrics) {
+          results.push(metrics);
+
+          try {
+            MetricsExporter.exportToDatabase(results);
+          } catch (error: any) {
+            console.error('Error exporting metrics to Database:', error.message);
+          }
+        }
       } catch (error: any) {
         console.error(`Error processing repository "${repository}":`, error.message);
-        nullResults.push({ repository, category, metric: error.message });
       }
     }
-    //MetricsExporter.exportToCSV(results, nullResults, process.cwd());
+
+    try {
+      MetricsExporter.exportToCSV(results);
+    } catch (error: any) {
+      console.error('Error exporting metrics to CSV:', error.message);
+    }
+
+    
   } catch (error: any) {
-    console.error('Error running the project:', error.message);
+    console.error('Unhandled error occurred while running the project:', error.message);
   }
 }
 

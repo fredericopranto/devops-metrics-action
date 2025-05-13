@@ -1,2 +1,7 @@
-Repository,Category,Deployment Frequency (DF),DF Level,Lead Time (days),LT Level,Change Failure Rate (CFR),CFR Level,Mean Time to Restore (MTTR),MTTR Level
-facebook/docusaurus,Non-ML,0.03,Baixa,NaN,Baixa,100,Baixa,54.76,Média
+repository,category,dfValue,dfLevel,ltValue,ltLevel,cfrValue,cfrLevel,mttrValue,mttrLevel
+QuantumBFS/Yao.jl,ML,0.02,Baixa,70.73,Baixa,33,Média,126.67,Média
+rflamary/POT,ML,0.01,Baixa,116.19,Baixa,68,Baixa,308.7,Baixa
+tensorly/tensorly,ML,0.01,Baixa,369.63,Baixa,67,Baixa,552.57,Baixa
+cmusphinx/pocketsphinx,Non-ML,0.01,Baixa,386.85,Baixa,null,Elite,null,null
+CyberReboot/poseidon,ML,0.00,Baixa,50.35,Baixa,32,Média,58.28,Média
+zhenghaoz/gorse,ML,0.20,Alta,null,null,null,Elite,null,null
