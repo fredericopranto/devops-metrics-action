@@ -1,9 +1,4 @@
 export class DORAMetricsEvaluator {
-  /**
-   * Avalia a métrica de Deployment Frequency (DF) e retorna a classificação.
-   * @param df Deployment Frequency (em dias entre deploys).
-   * @returns Classificação: "Elite", "Alta", "Média" ou "Baixa".
-   */
   static evaluateDeploymentFrequency(df: number | null): string {
     if (df === null) {
       return 'null';
@@ -20,11 +15,6 @@ export class DORAMetricsEvaluator {
     }
   }
 
-  /**
-   * Avalia a métrica de Lead Time para mudanças e retorna a classificação.
-   * @param leadTime Lead Time (em dias).
-   * @returns Classificação: "Elite", "Alta", "Média" ou "Baixa".
-   */
   static evaluateLeadTime(leadTime: number | null): string {
     if (leadTime === null) {
       return 'null';
@@ -41,11 +31,6 @@ export class DORAMetricsEvaluator {
     }
   }
 
-  /**
-   * Avalia a métrica de Taxa de Falhas em Mudanças e retorna a classificação.
-   * @param failureRate Taxa de falhas (em %).
-   * @returns Classificação: "Elite", "Alta", "Média" ou "Baixa".
-   */
   static evaluateChangeFailureRate(failureRate: number | null): string {
     if (failureRate === null) {
       return 'null';
@@ -62,11 +47,6 @@ export class DORAMetricsEvaluator {
     }
   }
 
-  /**
-   * Avalia a métrica de Tempo Médio para Recuperação (MTTR) e retorna a classificação.
-   * @param mttr Tempo médio para recuperação (em horas).
-   * @returns Classificação: "Elite", "Alta", "Média" ou "Baixa".
-   */
   static evaluateMTTR(mttr: number | null): string {
     if (mttr === null) {
       return 'null';

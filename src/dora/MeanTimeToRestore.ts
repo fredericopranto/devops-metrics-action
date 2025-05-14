@@ -104,8 +104,7 @@ export class MeanTimeToRestore {
     }
 
     if (this.bugs === null || this.bugs.length === 0) {
-      console.info('No issues found');
-      return null;
+      return 0;
     }
 
     const ttr: number[] = this.getClosedBugCount(this.bugs).map(bug => {

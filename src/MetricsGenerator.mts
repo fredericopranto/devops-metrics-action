@@ -29,7 +29,7 @@ export class MetricsGenerator {
       const remaining = rateLimit.data.rate.remaining;
       const resetTime = new Date(rateLimit.data.rate.reset * 1000).toISOString();
   
-      Logger.debug(`GitHub API Rate Limit: ${remaining} requests remaining. Reset at: ${resetTime}`);
+      Logger.info(`GitHub API Rate Limit: ${remaining} requests remaining. Reset at: ${resetTime}`);
   
       if (remaining <= 0) {
         throw new Error(`Rate limit exceeded. Please wait until ${resetTime} to continue.`);
@@ -120,23 +120,32 @@ export class MetricsGenerator {
       category,
       dfValue: dfValueDay,
       dfLevel,
-      ltValue: ltValue?.toFixed(2) || 'null',
+      ltValue: ltValue?.toFixed(2),
       ltLevel,
-      cfrValue: cfrValue || 'null',
+      cfrValue: cfrValue,
       cfrLevel,
-      mttrValue: mttrValueDay || 'null',
+      mttrValue: mttrValueDay,
       mttrLevel,
+      metadata: {
+        totalReleases: releases.length,
+        totalIssues: issues.length,
+        totalBugs: bugs.length,
+        totalPullRequests: pulls.length,
+        totalCommits: pulls.reduce((sum, pull) => sum + (pull.commits?.length || 0), 0),
+      },
     };
 
     function printToConsole() {
       console.log('>>> Deployment Frequency (DF) (Day):     ', dfValueDay, '      | Level:', dfLevel);
-      //console.log('>>> Deployment Frequency (DF) (Week):', dfValueWeek);
-      //console.log('>>> Deployment Frequency (DF) (Month):', dfValueMonth);
       console.log('>>> Lead Time (LT):                      ', ltValue?.toFixed(2) || 'null', 'days  | Level:', ltLevel);
       console.log('>>> Change Failure Rate (CFR):           ', cfrValue || 'null', '%     | Level:', cfrLevel);
       console.log('>>> Mean Time to Restore (MTTR) (Day):   ', mttrValueDay || 'null', '      | Level:', mttrLevel);
-      //console.log('Mean Time to Restore (MTTR) (Week):', mttrValueWeek);
-      //console.log('Mean Time to Restore (MTTR) (Month):', mttrValueMonth);
+      console.log('>>> Metadata:');
+      console.log('    Total Releases:                      ', releases.length);
+      console.log('    Total Issues:                        ', issues.length);
+      console.log('    Total Bugs:                          ', bugs.length);
+      console.log('    Total Pull Requests:                 ', pulls.length);
+      console.log('    Total Commits:                       ', pulls.reduce((sum, pull) => sum + (pull.commits?.length || 0), 0));
     }
   }
 }

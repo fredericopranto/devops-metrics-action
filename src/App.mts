@@ -43,6 +43,7 @@ async function run(): Promise<void> {
     const generator = new MetricsGenerator(octokit);
     
     const results = [];
+    const metadataList = [];
 
     for (const { repository, category } of repositories) {
       try {
@@ -55,10 +56,32 @@ async function run(): Promise<void> {
         if (metrics) {
           results.push(metrics);
 
+          const metadataExists = await MetricsExporter.metaDataExists(repository, category);
+          if (!metadataExists) {
+            metadataList.push({
+              repository: metrics.repository,
+              category: metrics.category,
+              ...metrics.metadata,
+            });
+          }
+
+          if (!Array.isArray(results) || results.length === 0) {
+            console.error('Empty projects.');
+            return;
+          }
+
           try {
-            MetricsExporter.exportToDatabase(results);
+            MetricsExporter.exportMetricsToDatabase(results);
           } catch (error: any) {
             console.error('Error exporting metrics to Database:', error.message);
+          }
+
+          try {
+            if (!metadataExists) {
+              await MetricsExporter.exportMetadataToDatabase(metadataList);
+            }
+          } catch (error: any) {
+            console.error('Error exporting metadata to Database:', error.message);
           }
         }
       } catch (error: any) {
@@ -67,12 +90,10 @@ async function run(): Promise<void> {
     }
 
     try {
-      MetricsExporter.exportToCSV(results);
+      MetricsExporter.exportMetricsToCSV(results);
     } catch (error: any) {
       console.error('Error exporting metrics to CSV:', error.message);
     }
-
-    
   } catch (error: any) {
     console.error('Unhandled error occurred while running the project:', error.message);
   }
