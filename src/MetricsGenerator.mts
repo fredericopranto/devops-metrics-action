@@ -52,13 +52,19 @@ export class MetricsGenerator {
 
     const releases = (await adapterRelease.GetAllReleases(startDate, endDate)) || [];
     Logger.info(`[SETUP] Total releases: ${releases.length}`);
-    if (releases.length < 2) {
-      Logger.warn('Not enough releases to calculate metrics. At least 2 releases are required.');
+    const minReleases = parseInt(process.env.MIN_RELEASES || '50', 10);
+    if (releases.length < minReleases) {
+      Logger.warn(`Not enough releases to calculate metrics. At least  ${minReleases} releases are required.`);
       return;
     }
     const issues = (await adapterIssue.GetAllIssuesGraphQL(startDate)) || [];
     Logger.info(`[SETUP] Total issues: ${issues.length}`);
     const bugs = BugFilter.getBugs(issues);
+    const minBugs = parseInt(process.env.MIN_BUGS || '100', 10);
+    if (bugs.length < minBugs) {
+      Logger.warn(`Not enough bug to calculate metrics. At least  ${minBugs} bugs are required.`);
+      return;
+    }
     Logger.info(`[SETUP] Total bugs issues: ${bugs.length}`);
     let pulls = (await adapterPR.GetAllPRs(startDate)) || [];
     Logger.info(`[SETUP] Total pulls: ${pulls.length}`);

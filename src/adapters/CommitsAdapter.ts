@@ -3,6 +3,7 @@ import { Octokit } from '@octokit/core';
 import { Commit } from '../types/Commit.js';
 import { ICommitsAdapter } from '../interfaces/ICommitsAdapter.js';
 import { Logger } from '../utils/Logger.js';
+import { exit } from 'process';
 
 export class CommitsAdapter implements ICommitsAdapter {
   octokit: Octokit;
@@ -17,7 +18,7 @@ export class CommitsAdapter implements ICommitsAdapter {
       return response.data;
     } catch (error) {
       console.error(`Error fetching commits from URL "${url}": ${error}`);
-      return []; 
+      exit(1);
     }
   }
 
